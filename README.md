@@ -178,15 +178,30 @@ launchctl unload ~/Library/LaunchAgents/com.whisperx.app.plist
 
 ## CLI Tool
 
-For quick command-line transcription (uses OpenAI API):
+For command-line transcription:
 
 ```bash
-# Set your API key
-echo 'OPENAI_API_KEY=sk-...' > .env
-
-# Transcribe a file
+# Basic usage
 ./whisperx_run /path/to/audio.m4a
+
+# Specify model
+./whisperx_run /path/to/video.mp4 --model small
+
+# Manual speaker names
+./whisperx_run /path/to/call.wav --speakers "Alice,Bob"
+
+# See all options
+./whisperx_run --help
 ```
+
+**Options:**
+| Option | Description |
+|--------|-------------|
+| `--model MODEL` | Whisper model (tiny, base, small, medium, large-v3). Default: large-v3 |
+| `--speakers NAMES` | Comma-separated speaker names |
+| `--help` | Show help message |
+
+You can also set `WHISPERX_MODEL` environment variable to change the default model.
 
 ## Troubleshooting
 
