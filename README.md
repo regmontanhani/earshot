@@ -29,9 +29,9 @@ cd whisperx
 ```
 
 The setup script will:
-- Install all dependencies (Homebrew, BlackHole, Python packages)
+- Install all dependencies (Homebrew, BlackHole, Python packages, Ollama)
+- Pull the llama3.2 model for speaker identification
 - Guide you through audio device configuration
-- Optionally install Ollama for speaker identification
 - Optionally configure auto-start on login
 
 ### Manual Installation
@@ -71,7 +71,7 @@ For live meeting transcription, you need to route system audio through BlackHole
 
 This creates a virtual device that sends audio to both your speakers AND BlackHole for recording.
 
-#### 4. (Optional) Ollama for Speaker Identification
+#### 4. Ollama for Speaker Identification
 
 ```bash
 brew install ollama
@@ -249,7 +249,7 @@ The first run downloads the Whisper model (~3GB for large-v3). Subsequent runs a
 - `soundfile` - Audio file handling
 - `numpy` - Numerical processing
 
-### Optional
+### Required
 
 - `ollama` + `llama3.2` - Local LLM for speaker identification
 
