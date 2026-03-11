@@ -1,0 +1,33 @@
+# Labels applied based on files changed in PR
+
+# Core application code
+core:
+  - changed-files:
+      - any-glob-to-any-file: 'earshot/**'
+
+# CLI tool
+cli:
+  - changed-files:
+      - any-glob-to-any-file: 'earshot_run'
+
+# Documentation
+documentation:
+  - changed-files:
+      - any-glob-to-any-file:
+          - '*.md'
+          - 'docs/**'
+
+# Setup/config
+setup:
+  - changed-files:
+      - any-glob-to-any-file:
+          - 'setup.sh'
+          - 'setup.py'
+          - 'requirements.txt'
+          - 'run_app.sh'
+          - 'build_app.sh'
+
+# GitHub config
+github:
+  - changed-files:
+      - any-glob-to-any-file: '.github/**'
