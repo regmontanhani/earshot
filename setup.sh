@@ -83,25 +83,29 @@ install_python_deps() {
     echo "   ✅ Python dependencies installed"
 }
 
-# Install Ollama (optional)
+# Install Ollama for speaker diarization
 install_ollama() {
     echo ""
-    read -p "🤖 Install Ollama for speaker identification? (y/n) " -n 1 -r
-    echo ""
+    echo "🤖 Installing Ollama for speaker identification..."
     
-    if [[ $REPLY =~ ^[Yy]$ ]]; then
-        if ! command -v ollama &>/dev/null; then
-            echo "   Installing Ollama..."
-            brew install ollama
-        else
-            echo "   ✅ Ollama is installed"
-        fi
-        
-        echo "   Pulling llama3.2 model (this may take a few minutes)..."
-        ollama pull llama3.2 || echo "   ⚠️  Could not pull model. Run 'ollama pull llama3.2' later."
+    if ! command -v ollama &>/dev/null; then
+        echo "   Installing Ollama..."
+        brew install ollama
     else
-        echo "   Skipping Ollama installation"
+        echo "   ✅ Ollama is installed"
     fi
+    
+    # Start Ollama service if not running
+    if ! pgrep -x "ollama" &>/dev/null; then
+        echo "   Starting Ollama service..."
+        ollama serve &>/dev/null &
+        sleep 2
+    fi
+    
+    # Pull the model
+    echo "   Pulling llama3.2 model (this may take a few minutes)..."
+    ollama pull llama3.2
+    echo "   ✅ Ollama ready with llama3.2"
 }
 
 # Setup Multi-Output Device
