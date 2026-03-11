@@ -1,0 +1,50 @@
+# Environment
+.env
+.env.local
+
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+wheels/
+*.egg-info/
+.installed.cfg
+*.egg
+
+# macOS
+.DS_Store
+.AppleDouble
+.LSOverride
+
+# Transcription outputs (samples)
+*.json
+*.srt
+*.vtt
+*.tsv
+*.txt
+!README.md
+
+# Audio/Video files
+*.m4a
+*.mp3
+*.wav
+*.mp4
+*.mkv
+*.mov
+
+# Temp files
+*.log
+/tmp/

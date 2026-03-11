@@ -1,0 +1,332 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+# Load .env file if present
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+if [ -f "$SCRIPT_DIR/.env" ]; then
+  set -a
+  source "$SCRIPT_DIR/.env"
+  set +a
+fi
+
+if [ "$#" -lt 1 ]; then
+  echo "Usage: $(basename "$0") /path/to/audio [--speakers \"Name1,Name2\"]" >&2
+  exit 2
+fi
+
+if [ -z "${OPENAI_API_KEY:-}" ]; then
+  echo "OPENAI_API_KEY is not set. Export it first." >&2
+  exit 2
+fi
+
+INPUT="$1"
+shift || true
+
+# Parse --speakers argument
+SPEAKERS=""
+REMAINING_ARGS=()
+while [[ $# -gt 0 ]]; do
+  case "$1" in
+    --speakers)
+      SPEAKERS="$2"
+      shift 2
+      ;;
+    *)
+      REMAINING_ARGS+=("$1")
+      shift
+      ;;
+  esac
+done
+set -- "${REMAINING_ARGS[@]+"${REMAINING_ARGS[@]}"}"
+
+# Get base name for output files
+INPUT_DIR="$(dirname "$INPUT")"
+INPUT_BASE="$(basename "$INPUT" | sed 's/\.[^.]*$//')"
+OUTPUT_DIR="${INPUT_DIR}"
+
+# Video formats need audio extraction
+# Audio formats can be passed directly (WhisperX/ffmpeg handles conversion)
+VIDEO_REGEX='\.(mp4|mkv|mov|avi|webm|m4v|wmv|flv)$'
+AUDIO_REGEX='\.(m4a|mp3|wav|flac|ogg|aac|wma|opus)$'
+
+if [[ "$INPUT" =~ $VIDEO_REGEX ]]; then
+  echo "📹 Extracting audio from video..."
+  AUDIO="$(mktemp -t whisperx_audio.XXXXXX).wav"
+  trap 'rm -f "$AUDIO"' EXIT
+  ffmpeg -i "$INPUT" -vn -acodec pcm_s16le -ar 16000 -ac 1 "$AUDIO" -y -loglevel error
+  echo "✅ Audio extracted"
+elif [[ "$INPUT" =~ $AUDIO_REGEX ]]; then
+  AUDIO="$INPUT"
+else
+  echo "⚠️  Unrecognized format, attempting to process anyway..."
+  AUDIO="$INPUT"
+fi
+
+# Export variables for Python script
+export AUDIO
+export OUTPUT_DIR
+export INPUT_BASE
+
+echo "🎙️  Starting transcription with OpenAI Whisper API..."
+echo "    Model: whisper-1 | Response format: verbose_json"
+
+# Call OpenAI Whisper API
+python3 << 'PYTHON_SCRIPT'
+import os
+import json
+import sys
+
+audio_file = os.environ['AUDIO']
+output_dir = os.environ['OUTPUT_DIR']
+input_base = os.environ['INPUT_BASE']
+
+try:
+    from openai import OpenAI
+except ImportError:
+    print("❌ OpenAI Python package not installed. Run: pip install openai")
+    sys.exit(1)
+
+client = OpenAI()
+
+# OpenAI API has 25MB limit, check file size
+file_size_mb = os.path.getsize(audio_file) / (1024 * 1024)
+if file_size_mb > 25:
+    print(f"⚠️  File is {file_size_mb:.1f}MB. OpenAI API has 25MB limit.")
+    print("   Consider compressing the audio or splitting it.")
+    sys.exit(1)
+
+print(f"📤 Uploading {file_size_mb:.1f}MB audio file...")
+
+with open(audio_file, "rb") as f:
+    response = client.audio.transcriptions.create(
+        model="whisper-1",
+        file=f,
+        response_format="verbose_json",
+        timestamp_granularities=["segment"]
+    )
+
+# Convert response to dict
+result = response.model_dump()
+
+# Save JSON
+json_path = os.path.join(output_dir, f"{input_base}.json")
+with open(json_path, "w") as f:
+    json.dump(result, f, indent=2)
+
+# Generate TXT (plain text)
+txt_path = os.path.join(output_dir, f"{input_base}.txt")
+with open(txt_path, "w") as f:
+    f.write(result.get("text", ""))
+
+# Generate SRT
+srt_path = os.path.join(output_dir, f"{input_base}.srt")
+with open(srt_path, "w") as f:
+    for i, seg in enumerate(result.get("segments", []), 1):
+        start = seg.get("start", 0)
+        end = seg.get("end", 0)
+        text = seg.get("text", "").strip()
+        
+        start_h, start_m = divmod(int(start), 3600), divmod(int(start) % 3600, 60)
+        start_s = start % 60
+        end_h, end_m = divmod(int(end), 3600), divmod(int(end) % 3600, 60)
+        end_s = end % 60
+        
+        f.write(f"{i}\n")
+        f.write(f"{start_h[0]:02d}:{start_m[0]:02d}:{start_s:06.3f}".replace(".", ","))
+        f.write(f" --> ")
+        f.write(f"{end_h[0]:02d}:{end_m[0]:02d}:{end_s:06.3f}".replace(".", ","))
+        f.write(f"\n{text}\n\n")
+
+# Generate VTT
+vtt_path = os.path.join(output_dir, f"{input_base}.vtt")
+with open(vtt_path, "w") as f:
+    f.write("WEBVTT\n\n")
+    for i, seg in enumerate(result.get("segments", []), 1):
+        start = seg.get("start", 0)
+        end = seg.get("end", 0)
+        text = seg.get("text", "").strip()
+        
+        start_h, start_m = divmod(int(start), 3600), divmod(int(start) % 3600, 60)
+        start_s = start % 60
+        end_h, end_m = divmod(int(end), 3600), divmod(int(end) % 3600, 60)
+        end_s = end % 60
+        
+        f.write(f"{start_h[0]:02d}:{start_m[0]:02d}:{start_s:06.3f}")
+        f.write(f" --> ")
+        f.write(f"{end_h[0]:02d}:{end_m[0]:02d}:{end_s:06.3f}")
+        f.write(f"\n{text}\n\n")
+
+# Generate TSV
+tsv_path = os.path.join(output_dir, f"{input_base}.tsv")
+with open(tsv_path, "w") as f:
+    f.write("start\tend\ttext\n")
+    for seg in result.get("segments", []):
+        start = int(seg.get("start", 0) * 1000)
+        end = int(seg.get("end", 0) * 1000)
+        text = seg.get("text", "").strip().replace("\t", " ")
+        f.write(f"{start}\t{end}\t{text}\n")
+
+print(f"✅ Transcription saved to {output_dir}")
+PYTHON_SCRIPT
+
+echo "✅ Transcription complete"
+
+# Identify speakers using Ollama if available
+identify_speakers() {
+  local json_file="$1"
+  
+  if ! command -v ollama &>/dev/null; then
+    echo "⚠️  Ollama not found. Install it for automatic speaker identification:"
+    echo "    brew install ollama && ollama pull llama3.2"
+    return 1
+  fi
+  
+  # Check if ollama is running
+  if ! ollama list &>/dev/null; then
+    echo "⚠️  Ollama is not running. Start it with: ollama serve"
+    return 1
+  fi
+  
+  echo "🤖 Identifying speakers with Ollama..."
+  
+  # Extract transcript text for LLM analysis
+  local transcript
+  transcript=$(python3 -c "
+import json
+with open('$json_file') as f:
+    data = json.load(f)
+for seg in data.get('segments', [])[:50]:  # First 50 segments for context
+    speaker = seg.get('speaker', 'UNKNOWN')
+    text = seg.get('text', '').strip()
+    print(f'{speaker}: {text}')
+")
+  
+  # Ask Ollama to identify speakers
+  local prompt="Below is a transcript with speaker labels like SPEAKER_00 and SPEAKER_01. Based on the conversation context, names mentioned, and how people refer to each other, identify who each speaker is.
+
+Reply ONLY with a JSON object mapping speaker IDs to names, like:
+{\"SPEAKER_00\": \"John Smith\", \"SPEAKER_01\": \"Jane Doe\"}
+
+If you cannot identify a speaker, use a descriptive label like \"Host\" or \"Guest\".
+
+Transcript:
+$transcript"
+
+  local response
+  response=$(echo "$prompt" | ollama run llama3.2 2>/dev/null)
+  
+  # Extract JSON from response
+  local speaker_map
+  speaker_map=$(echo "$response" | grep -o '{[^}]*}' | head -1)
+  
+  if [ -z "$speaker_map" ]; then
+    echo "⚠️  Could not parse speaker identification response"
+    return 1
+  fi
+  
+  echo "📝 Speaker mapping: $speaker_map"
+  
+  # Apply speaker names to output files
+  python3 -c "
+import json
+import sys
+
+speaker_map = json.loads('$speaker_map')
+json_file = '$json_file'
+base = json_file.rsplit('.', 1)[0]
+
+# Update JSON
+with open(json_file) as f:
+    data = json.load(f)
+for seg in data.get('segments', []):
+    old_speaker = seg.get('speaker', '')
+    if old_speaker in speaker_map:
+        seg['speaker'] = speaker_map[old_speaker]
+with open(json_file, 'w') as f:
+    json.dump(data, f, indent=2)
+
+# Update TXT
+txt_file = base + '.txt'
+try:
+    with open(txt_file) as f:
+        content = f.read()
+    for old, new in speaker_map.items():
+        content = content.replace(f'[{old}]', f'[{new}]')
+        content = content.replace(old, new)
+    with open(txt_file, 'w') as f:
+        f.write(content)
+except: pass
+
+# Update SRT
+srt_file = base + '.srt'
+try:
+    with open(srt_file) as f:
+        content = f.read()
+    for old, new in speaker_map.items():
+        content = content.replace(f'[{old}]', f'[{new}]')
+        content = content.replace(old, new)
+    with open(srt_file, 'w') as f:
+        f.write(content)
+except: pass
+
+# Update VTT
+vtt_file = base + '.vtt'
+try:
+    with open(vtt_file) as f:
+        content = f.read()
+    for old, new in speaker_map.items():
+        content = content.replace(f'[{old}]', f'[{new}]')
+        content = content.replace(old, new)
+    with open(vtt_file, 'w') as f:
+        f.write(content)
+except: pass
+
+print('✅ Speaker names applied to output files')
+"
+}
+
+# Find the output JSON file
+JSON_FILE="${OUTPUT_DIR}/${INPUT_BASE}.json"
+
+if [ -f "$JSON_FILE" ]; then
+  # If speakers provided manually, use them
+  if [ -n "$SPEAKERS" ]; then
+    echo "📝 Applying speaker names: $SPEAKERS"
+    IFS=',' read -ra SPEAKER_ARRAY <<< "$SPEAKERS"
+    SPEAKER_MAP="{\"SPEAKER_00\": \"${SPEAKER_ARRAY[0]:-Speaker 1}\", \"SPEAKER_01\": \"${SPEAKER_ARRAY[1]:-Speaker 2}\"}"
+    
+    python3 -c "
+import json
+
+speaker_map = json.loads('$SPEAKER_MAP')
+json_file = '$JSON_FILE'
+base = json_file.rsplit('.', 1)[0]
+
+with open(json_file) as f:
+    data = json.load(f)
+for seg in data.get('segments', []):
+    old_speaker = seg.get('speaker', '')
+    if old_speaker in speaker_map:
+        seg['speaker'] = speaker_map[old_speaker]
+with open(json_file, 'w') as f:
+    json.dump(data, f, indent=2)
+
+for ext in ['.txt', '.srt', '.vtt']:
+    try:
+        with open(base + ext) as f:
+            content = f.read()
+        for old, new in speaker_map.items():
+            content = content.replace(f'[{old}]', f'[{new}]')
+            content = content.replace(old, new)
+        with open(base + ext, 'w') as f:
+            f.write(content)
+    except: pass
+print('✅ Speaker names applied')
+"
+  else
+    # Try automatic identification
+    identify_speakers "$JSON_FILE" || true
+  fi
+fi
+
+echo "📁 Output files in: $OUTPUT_DIR"
