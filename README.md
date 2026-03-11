@@ -1,6 +1,6 @@
-# WhisperX
+# Earshot
 
-A macOS menu bar app for local audio transcription using MLX-optimized Whisper models. Perfect for transcribing meetings when you don't have admin access to record.
+A macOS menu bar app for local audio transcription. Capture meetings you can't record, transcribe audio files - all locally on your Mac.
 
 ![Menu Bar](https://img.shields.io/badge/macOS-Menu%20Bar%20App-blue)
 ![Apple Silicon](https://img.shields.io/badge/Apple%20Silicon-Optimized-green)
@@ -23,8 +23,8 @@ A macOS menu bar app for local audio transcription using MLX-optimized Whisper m
 ### One-Command Setup
 
 ```bash
-git clone https://github.com/regmontanhani/whisperx.git
-cd whisperx
+git clone https://github.com/regmontanhani/earshot.git
+cd earshot
 ./setup.sh
 ```
 
@@ -114,7 +114,7 @@ A **🎙️** icon appears in your menu bar.
 3. **After the meeting:**
    - Click **🔴 → Stop Recording**
    - Transcription runs automatically
-   - Files saved to `~/Documents/WhisperX/`
+   - Files saved to `~/Documents/Earshot/`
 
 ### File Transcription
 
@@ -147,18 +147,18 @@ Select model in **Settings → Model Size**:
 | `medium` | ~1.5 GB | ~5 GB | ⚡⚡ | ★★★★☆ |
 | `large-v3` | ~3 GB | ~10 GB | ⚡ | ★★★★★ |
 
-**Recommendation:** Use `large-v3` for best quality. Your M4 Max handles it easily.
+**Recommendation:** Use `large-v3` for best quality on Apple Silicon Macs.
 
 Models download automatically on first use.
 
 ## Configuration
 
-Settings are stored in `~/.config/whisperx/settings.json`:
+Settings are stored in `~/.config/earshot/settings.json`:
 
 ```json
 {
   "model_size": "large-v3",
-  "output_dir": "~/Documents/WhisperX",
+  "output_dir": "~/Documents/Earshot",
   "audio_device": "BlackHole 2ch",
   "silence_timeout": 60,
   "chunk_duration": 30,
@@ -170,10 +170,10 @@ Settings are stored in `~/.config/whisperx/settings.json`:
 
 ```bash
 # Enable
-launchctl load ~/Library/LaunchAgents/com.whisperx.app.plist
+launchctl load ~/Library/LaunchAgents/com.earshot.app.plist
 
 # Disable
-launchctl unload ~/Library/LaunchAgents/com.whisperx.app.plist
+launchctl unload ~/Library/LaunchAgents/com.earshot.app.plist
 ```
 
 ## CLI Tool
@@ -182,16 +182,16 @@ For command-line transcription:
 
 ```bash
 # Basic usage
-./whisperx_run /path/to/audio.m4a
+./earshot_run /path/to/audio.m4a
 
 # Specify model
-./whisperx_run /path/to/video.mp4 --model small
+./earshot_run /path/to/video.mp4 --model small
 
 # Manual speaker names
-./whisperx_run /path/to/call.wav --speakers "Alice,Bob"
+./earshot_run /path/to/call.wav --speakers "Alice,Bob"
 
 # See all options
-./whisperx_run --help
+./earshot_run --help
 ```
 
 **Options:**
@@ -201,7 +201,7 @@ For command-line transcription:
 | `--speakers NAMES` | Comma-separated speaker names |
 | `--help` | Show help message |
 
-You can also set `WHISPERX_MODEL` environment variable to change the default model.
+You can also set `EARSHOT_MODEL` environment variable to change the default model.
 
 ## Troubleshooting
 
@@ -216,7 +216,7 @@ If still not visible, reboot your Mac.
 ### No audio being captured
 
 1. Check System Settings → Sound → Output is set to "Meeting Audio"
-2. Check WhisperX Settings → Audio Input is set to "BlackHole 2ch"
+2. Check Earshot Settings → Audio Input is set to "BlackHole 2ch"
 3. Make sure the meeting app is playing audio
 
 ### Transcription quality is poor
@@ -227,10 +227,10 @@ If still not visible, reboot your Mac.
 
 ### App not appearing in menu bar
 
-The app may be running as a Dock app instead. This version includes a fix for this - restart the app:
+The app may be running as a Dock app instead. Restart the app:
 
 ```bash
-pkill -f "whisperx_app.app"
+pkill -f "earshot.app"
 ./run_app.sh
 ```
 
@@ -271,8 +271,8 @@ The first run downloads the Whisper model (~3GB for large-v3). Subsequent runs a
 ## Project Structure
 
 ```
-whisperx/
-├── whisperx_app/
+earshot/
+├── earshot/
 │   ├── __init__.py
 │   ├── app.py              # Menu bar application
 │   ├── transcriber.py      # MLX-Whisper wrapper
@@ -283,7 +283,7 @@ whisperx/
 │   └── config.py           # Settings management
 ├── setup.sh                # One-command setup script
 ├── run_app.sh              # Run the menu bar app
-├── whisperx_run            # CLI tool (OpenAI API)
+├── earshot_run             # CLI tool
 ├── requirements.txt        # Python dependencies
 └── README.md
 ```

@@ -1,4 +1,4 @@
-"""WhisperX - Menu bar transcription app for macOS."""
+"""Earshot - Menu bar transcription app for macOS."""
 
 import os
 import threading
@@ -26,11 +26,11 @@ from .transcriber import Transcriber
 AUDIO_LEVELS = ["▁", "▂", "▃", "▄", "▅", "▆", "▇", "█"]
 
 
-class WhisperXApp(rumps.App):
-    """Menu bar application for WhisperX transcription."""
+class EarshotApp(rumps.App):
+    """Menu bar application for Earshot transcription."""
     
     def __init__(self):
-        super().__init__("WhisperX", icon=None, quit_button=None)
+        super().__init__("Earshot", icon=None, quit_button=None)
         
         self.settings = load_settings()
         self.transcriber = None
@@ -157,7 +157,7 @@ class WhisperXApp(rumps.App):
         
         if not self.audio_capture.start():
             rumps.notification(
-                title="WhisperX",
+                title="Earshot",
                 subtitle="Recording Failed",
                 message=f"Could not find audio device: {self.settings['audio_device']}",
             )
@@ -170,7 +170,7 @@ class WhisperXApp(rumps.App):
         self._start_level_monitor()
         
         rumps.notification(
-            title="WhisperX",
+            title="Earshot",
             subtitle="Recording Started",
             message="Capturing audio. Click menu to stop.",
         )
@@ -189,7 +189,7 @@ class WhisperXApp(rumps.App):
         
         if not chunks:
             rumps.notification(
-                title="WhisperX",
+                title="Earshot",
                 subtitle="No Audio",
                 message="No audio was captured.",
             )
@@ -197,7 +197,7 @@ class WhisperXApp(rumps.App):
             return
         
         rumps.notification(
-            title="WhisperX",
+            title="Earshot",
             subtitle="Processing...",
             message=f"Transcribing {len(chunks)} audio segments.",
         )
@@ -220,7 +220,7 @@ class WhisperXApp(rumps.App):
             # Attempt speaker diarization with Ollama
             if is_ollama_available():
                 rumps.notification(
-                    title="WhisperX",
+                    title="Earshot",
                     subtitle="Identifying speakers...",
                     message="Using Ollama for speaker diarization",
                 )
@@ -239,14 +239,14 @@ class WhisperXApp(rumps.App):
             )
             
             rumps.notification(
-                title="WhisperX",
+                title="Earshot",
                 subtitle="Transcription Complete",
                 message=f"Saved to {output_dir}",
             )
         
         except Exception as e:
             rumps.notification(
-                title="WhisperX",
+                title="Earshot",
                 subtitle="Transcription Failed",
                 message=str(e)[:100],
             )
@@ -258,7 +258,7 @@ class WhisperXApp(rumps.App):
     def _on_silence_timeout(self) -> None:
         """Called when silence timeout is reached."""
         rumps.notification(
-            title="WhisperX",
+            title="Earshot",
             subtitle="Auto-stopping",
             message="No audio detected for 60 seconds.",
         )
@@ -294,7 +294,7 @@ class WhisperXApp(rumps.App):
                 return
             
             rumps.notification(
-                title="WhisperX",
+                title="Earshot",
                 subtitle="Processing...",
                 message=f"Transcribing {file_path.name}",
             )
@@ -306,7 +306,7 @@ class WhisperXApp(rumps.App):
         
         except Exception as e:
             rumps.notification(
-                title="WhisperX",
+                title="Earshot",
                 subtitle="Error",
                 message=str(e)[:100],
             )
@@ -335,14 +335,14 @@ class WhisperXApp(rumps.App):
             )
             
             rumps.notification(
-                title="WhisperX",
+                title="Earshot",
                 subtitle="Transcription Complete",
                 message=f"Saved {len(files)} files to {output_dir}",
             )
         
         except Exception as e:
             rumps.notification(
-                title="WhisperX",
+                title="Earshot",
                 subtitle="Transcription Failed",
                 message=str(e)[:100],
             )
@@ -372,7 +372,7 @@ class WhisperXApp(rumps.App):
         self.transcriber = None
         
         rumps.notification(
-            title="WhisperX",
+            title="Earshot",
             subtitle="Model Changed",
             message=f"Will use {sender.title} model for next transcription.",
         )
@@ -411,8 +411,8 @@ class WhisperXApp(rumps.App):
 
 
 def main():
-    """Run the WhisperX app."""
-    app = WhisperXApp()
+    """Run the Earshot app."""
+    app = EarshotApp()
     app.run()
 
 

@@ -77,7 +77,7 @@ AUDIO_REGEX='\.(m4a|mp3|wav|flac|ogg|aac|wma|opus)$'
 
 if [[ "$INPUT" =~ $VIDEO_REGEX ]]; then
     echo "📹 Extracting audio from video..."
-    AUDIO="$(mktemp -t whisperx_audio.XXXXXX).wav"
+    AUDIO="$(mktemp -t earshot_audio.XXXXXX).wav"
     trap 'rm -f "$AUDIO"' EXIT
     ffmpeg -i "$INPUT" -vn -acodec pcm_s16le -ar 16000 -ac 1 "$AUDIO" -y -loglevel error
     echo "✅ Audio extracted"
@@ -112,12 +112,12 @@ script_dir = os.path.dirname(os.path.abspath(__file__)) if '__file__' in dir() e
 sys.path.insert(0, script_dir)
 
 try:
-    from whisperx_app.transcriber import Transcriber
-    from whisperx_app.output_writer import write_all_formats
-    from whisperx_app.diarization import diarize_transcript, is_ollama_available
+    from earshot.transcriber import Transcriber
+    from earshot.output_writer import write_all_formats
+    from earshot.diarization import diarize_transcript, is_ollama_available
 except ImportError as e:
-    print(f"❌ Could not import whisperx_app modules: {e}")
-    print("   Make sure you're running from the whisperx directory.")
+    print(f"❌ Could not import earshot modules: {e}")
+    print("   Make sure you're running from the earshot directory.")
     sys.exit(1)
 
 # Get file size for display

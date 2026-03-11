@@ -7,14 +7,14 @@ from pathlib import Path
 # Default settings
 DEFAULTS = {
     "model_size": "large-v3",
-    "output_dir": str(Path.home() / "Documents" / "WhisperX"),
+    "output_dir": str(Path.home() / "Documents" / "Earshot"),
     "audio_device": "BlackHole 2ch",
     "silence_timeout": 60,
     "chunk_duration": 30,
     "output_formats": ["json", "txt", "srt", "vtt", "tsv"],
 }
 
-CONFIG_DIR = Path.home() / ".config" / "whisperx"
+CONFIG_DIR = Path.home() / ".config" / "earshot"
 CONFIG_FILE = CONFIG_DIR / "settings.json"
 
 

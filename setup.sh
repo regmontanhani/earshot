@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# WhisperX Setup Script
+# Earshot Setup Script
 # Installs all dependencies and configures audio for live meeting transcription
 
 set -euo pipefail
@@ -7,7 +7,7 @@ set -euo pipefail
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 
 echo "╔══════════════════════════════════════════════════════════════╗"
-echo "║                    WhisperX Setup                            ║"
+echo "║                    Earshot Setup                            ║"
 echo "║         Local Audio Transcription for macOS                  ║"
 echo "╚══════════════════════════════════════════════════════════════╝"
 echo ""
@@ -169,11 +169,11 @@ setup_audio_device() {
 # Setup auto-start
 setup_autostart() {
     echo ""
-    read -p "🚀 Start WhisperX automatically on login? (y/n) " -n 1 -r
+    read -p "🚀 Start Earshot automatically on login? (y/n) " -n 1 -r
     echo ""
     
     if [[ $REPLY =~ ^[Yy]$ ]]; then
-        PLIST_PATH="$HOME/Library/LaunchAgents/com.whisperx.app.plist"
+        PLIST_PATH="$HOME/Library/LaunchAgents/com.earshot.app.plist"
         
         cat > "$PLIST_PATH" << EOF
 <?xml version="1.0" encoding="UTF-8"?>
@@ -181,12 +181,12 @@ setup_autostart() {
 <plist version="1.0">
 <dict>
     <key>Label</key>
-    <string>com.whisperx.app</string>
+    <string>com.earshot.app</string>
     <key>ProgramArguments</key>
     <array>
         <string>/opt/homebrew/bin/python3</string>
         <string>-m</string>
-        <string>whisperx_app.app</string>
+        <string>earshot.app</string>
     </array>
     <key>WorkingDirectory</key>
     <string>$SCRIPT_DIR</string>
@@ -195,15 +195,15 @@ setup_autostart() {
     <key>KeepAlive</key>
     <false/>
     <key>StandardOutPath</key>
-    <string>/tmp/whisperx.log</string>
+    <string>/tmp/earshot.log</string>
     <key>StandardErrorPath</key>
-    <string>/tmp/whisperx.error.log</string>
+    <string>/tmp/earshot.error.log</string>
 </dict>
 </plist>
 EOF
         
         launchctl load "$PLIST_PATH" 2>/dev/null || true
-        echo "   ✅ WhisperX will start on login"
+        echo "   ✅ Earshot will start on login"
     else
         echo "   Skipping auto-start setup"
     fi
@@ -212,7 +212,7 @@ EOF
 # Make scripts executable
 setup_scripts() {
     chmod +x "$SCRIPT_DIR/run_app.sh" 2>/dev/null || true
-    chmod +x "$SCRIPT_DIR/whisperx_run" 2>/dev/null || true
+    chmod +x "$SCRIPT_DIR/earshot_run" 2>/dev/null || true
     chmod +x "$SCRIPT_DIR/build_app.sh" 2>/dev/null || true
 }
 
@@ -223,7 +223,7 @@ print_summary() {
     echo "║                    Setup Complete! 🎉                        ║"
     echo "╚══════════════════════════════════════════════════════════════╝"
     echo ""
-    echo "To start WhisperX now:"
+    echo "To start Earshot now:"
     echo "  cd \"$SCRIPT_DIR\""
     echo "  ./run_app.sh"
     echo ""
@@ -234,7 +234,7 @@ print_summary() {
     echo "  2. Join your meeting"
     echo "  3. Click 🎙️ → Start Live Transcription"
     echo ""
-    echo "Transcripts are saved to: ~/Documents/WhisperX/"
+    echo "Transcripts are saved to: ~/Documents/Earshot/"
     echo ""
 }
 
