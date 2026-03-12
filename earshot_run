@@ -97,7 +97,7 @@ export MODEL
 echo "🎙️  Starting transcription with local MLX-Whisper..."
 echo "    Model: $MODEL"
 
-# Transcribe using local MLX-Whisper
+# Transcribe using OpenAI API (or local fallback)
 python3 << 'PYTHON_SCRIPT'
 import os
 import sys
@@ -105,14 +105,13 @@ import sys
 audio_file = os.environ['AUDIO']
 output_dir = os.environ['OUTPUT_DIR']
 input_base = os.environ['INPUT_BASE']
-model_size = os.environ['MODEL']
 
 # Add script directory to path for imports
 script_dir = os.path.dirname(os.path.abspath(__file__)) if '__file__' in dir() else os.getcwd()
 sys.path.insert(0, script_dir)
 
 try:
-    from earshot.transcriber import Transcriber
+    from earshot.transcriber import OpenAITranscriber, Transcriber, get_openai_api_key
     from earshot.output_writer import write_all_formats
     from earshot.diarization import diarize_transcript, is_ollama_available
 except ImportError as e:
@@ -124,10 +123,24 @@ except ImportError as e:
 file_size_mb = os.path.getsize(audio_file) / (1024 * 1024)
 print(f"📂 Processing {file_size_mb:.1f}MB audio file...")
 
-# Transcribe
-print("🔄 Transcribing (this may take a moment on first run to download the model)...")
-transcriber = Transcriber(model_size=model_size)
-transcript = transcriber.transcribe(audio_file)
+# Transcribe using OpenAI API if available
+api_key = get_openai_api_key()
+if api_key:
+    print("🔄 Transcribing with OpenAI API...")
+    try:
+        transcriber = OpenAITranscriber(api_key=api_key)
+        transcript = transcriber.transcribe(audio_file)
+    except Exception as e:
+        print(f"⚠️  OpenAI failed: {e}")
+        print("   Falling back to local transcription...")
+        model_size = os.environ.get('MODEL', 'large-v3')
+        transcriber = Transcriber(model_size=model_size)
+        transcript = transcriber.transcribe(audio_file)
+else:
+    print("🔄 Transcribing locally (set OPENAI_API_KEY for faster cloud transcription)...")
+    model_size = os.environ.get('MODEL', 'large-v3')
+    transcriber = Transcriber(model_size=model_size)
+    transcript = transcriber.transcribe(audio_file)
 
 # Speaker diarization with Ollama
 if is_ollama_available():

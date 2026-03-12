@@ -20,7 +20,7 @@ from .config import load_settings, save_settings, get_output_dir
 from .diarization import diarize_transcript, is_ollama_available
 from .file_processor import prepare_audio, get_output_base_name, is_supported_file
 from .output_writer import write_all_formats
-from .transcriber import Transcriber
+from .transcriber import Transcriber, OpenAITranscriber, get_openai_api_key
 
 # Audio level visualization characters
 AUDIO_LEVELS = ["▁", "▂", "▃", "▄", "▅", "▆", "▇", "█"]
@@ -341,7 +341,7 @@ class EarshotApp(rumps.App):
             )
     
     def _transcribe_file(self, file_path: Path) -> None:
-        """Transcribe a file (runs in background thread)."""
+        """Transcribe a file using OpenAI API (runs in background thread)."""
         temp_audio = None
         
         try:
@@ -351,7 +351,14 @@ class EarshotApp(rumps.App):
             if is_temp:
                 temp_audio = audio_path
             
-            transcriber = self._get_transcriber()
+            # Use OpenAI for file transcription (faster, no memory issues)
+            api_key = get_openai_api_key()
+            if api_key:
+                transcriber = OpenAITranscriber(api_key=api_key)
+            else:
+                # Fallback to local if no API key
+                transcriber = self._get_transcriber()
+            
             transcript = transcriber.transcribe(audio_path)
             
             # Attempt speaker diarization with Ollama

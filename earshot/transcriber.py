@@ -1,4 +1,4 @@
-"""Core transcription module using MLX-Whisper."""
+"""Core transcription module using MLX-Whisper and OpenAI."""
 
 import os
 from pathlib import Path
@@ -7,7 +7,7 @@ import mlx_whisper
 
 
 class Transcriber:
-    """Wrapper for MLX-Whisper transcription."""
+    """Wrapper for MLX-Whisper transcription (local, for live recording chunks)."""
     
     # Available models (MLX-optimized)
     MODELS = {
@@ -92,3 +92,71 @@ class Transcriber:
             "text": " ".join(all_text),
             "segments": all_segments,
         }
+
+
+class OpenAITranscriber:
+    """Wrapper for OpenAI Whisper API (for file transcription)."""
+    
+    def __init__(self, api_key: Optional[str] = None):
+        """Initialize with OpenAI API key."""
+        self.api_key = api_key or os.environ.get("OPENAI_API_KEY")
+        if not self.api_key:
+            raise ValueError("OpenAI API key required. Set OPENAI_API_KEY or pass api_key.")
+        
+        try:
+            from openai import OpenAI
+            self.client = OpenAI(api_key=self.api_key)
+        except ImportError:
+            raise ImportError("openai package required: pip install openai")
+    
+    def transcribe(
+        self,
+        audio_path: str | Path,
+        language: Optional[str] = None,
+    ) -> dict:
+        """
+        Transcribe an audio file using OpenAI Whisper API.
+        
+        Args:
+            audio_path: Path to audio file
+            language: Optional language code
+        
+        Returns:
+            Dictionary with 'text' and 'segments' keys
+        """
+        audio_path = Path(audio_path)
+        
+        with open(audio_path, "rb") as f:
+            response = self.client.audio.transcriptions.create(
+                model="whisper-1",
+                file=f,
+                language=language,
+                response_format="verbose_json",
+                timestamp_granularities=["segment"],
+            )
+        
+        # Convert OpenAI response to our format
+        segments = []
+        for seg in getattr(response, "segments", []) or []:
+            segments.append({
+                "start": seg.get("start", 0),
+                "end": seg.get("end", 0),
+                "text": seg.get("text", ""),
+            })
+        
+        return {
+            "text": response.text,
+            "segments": segments,
+        }
+
+
+def get_openai_api_key() -> Optional[str]:
+    """Get OpenAI API key from environment or config."""
+    # Check environment first
+    if key := os.environ.get("OPENAI_API_KEY"):
+        return key
+    
+    # Check config file
+    from .config import load_settings
+    settings = load_settings()
+    return settings.get("openai_api_key")
