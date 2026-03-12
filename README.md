@@ -1,22 +1,20 @@
 # Earshot
 
-A macOS menu bar app for local audio transcription. Capture meetings you can't record, transcribe audio files - all locally on your Mac.
+A macOS menu bar app for audio transcription. Capture live meetings locally, transcribe audio files via OpenAI.
 
 ![Menu Bar](https://img.shields.io/badge/macOS-Menu%20Bar%20App-blue)
 ![Apple Silicon](https://img.shields.io/badge/Apple%20Silicon-Optimized-green)
-![Local](https://img.shields.io/badge/100%25-Local-orange)
 
 ## Features
 
 | Feature | Description |
 |---------|-------------|
-| 🎙️ **Live Meeting Transcription** | Capture system audio in real-time from any app (Zoom, Teams, Meet, etc.) |
-| 📁 **File Transcription** | Transcribe audio/video files (m4a, mp3, wav, mp4, mkv, mov, etc.) |
+| 🎙️ **Live Meeting Transcription** | Capture system audio in real-time from any app (Zoom, Teams, Meet, etc.) - runs locally |
+| 📁 **File Transcription** | Transcribe audio/video files via OpenAI Whisper API (fast, handles large files) |
 | 🔴 **Live Audio Monitor** | Visual feedback in menu bar showing audio levels while recording |
 | 🤖 **Speaker Diarization** | Automatic speaker identification using local Ollama LLM |
-| 💻 **Fully Local** | No cloud APIs, no costs - runs entirely on your Mac |
 | 📝 **Multiple Formats** | Outputs JSON, TXT, SRT, VTT, TSV |
-| ⏹️ **Auto-Stop** | Automatically saves after 60 seconds of silence |
+| ⏹️ **Auto-Stop** | Configurable auto-stop after silence (or disable for manual control) |
 
 ## Quick Start
 
@@ -33,6 +31,16 @@ The setup script will:
 - Pull the llama3.2 model for speaker identification
 - Guide you through audio device configuration
 - Optionally configure auto-start on login
+
+### OpenAI API Key (for file transcription)
+
+File transcription uses the OpenAI Whisper API. Add your key to a `.env` file:
+
+```bash
+echo "OPENAI_API_KEY=your-key-here" > .env
+```
+
+Or set it as an environment variable. Without an API key, file transcription falls back to local processing (slower, uses more memory).
 
 ### Manual Installation
 
@@ -120,8 +128,10 @@ A **🎙️** icon appears in your menu bar.
 
 1. Click **🎙️ → Transcribe File...**
 2. Select any audio or video file
-3. Wait for transcription (notification when complete)
+3. Wait for transcription (uses OpenAI API - fast even for large files)
 4. Output files saved next to the original file
+
+> **Note:** Requires `OPENAI_API_KEY` in `.env` or environment. Falls back to local if not set.
 
 ## Output Formats
 
@@ -135,9 +145,17 @@ All transcriptions generate these files:
 | **VTT** | `.vtt` | WebVTT subtitles (for web/browsers) |
 | **TSV** | `.tsv` | Tab-separated values (for spreadsheets) |
 
+## How It Works
+
+| Mode | Engine | Why |
+|------|--------|-----|
+| **Live Recording** | Local MLX-Whisper | Audio is chunked (30s), low memory usage |
+| **File Transcription** | OpenAI API | Fast, handles large files without memory issues |
+| **Speaker ID** | Local Ollama | Privacy - speaker names stay on your machine |
+
 ## Models
 
-Select model in **Settings → Model Size**:
+For **live recording**, select model in **Settings → Model Size**:
 
 | Model | Download Size | RAM Usage | Speed | Quality |
 |-------|--------------|-----------|-------|---------|
@@ -160,11 +178,14 @@ Settings are stored in `~/.config/earshot/settings.json`:
   "model_size": "large-v3",
   "output_dir": "~/Documents/Earshot",
   "audio_device": "BlackHole 2ch",
+  "auto_stop_enabled": true,
   "silence_timeout": 60,
   "chunk_duration": 30,
   "output_formats": ["json", "txt", "srt", "vtt", "tsv"]
 }
 ```
+
+OpenAI API key can be set in `.env` file or as `OPENAI_API_KEY` environment variable.
 
 ## Auto-Start on Login
 
@@ -259,7 +280,8 @@ The first run downloads the Whisper model (~3GB for large-v3). Subsequent runs a
 ### Python
 
 - `rumps` - macOS menu bar framework
-- `mlx-whisper` - MLX-optimized Whisper for Apple Silicon
+- `mlx-whisper` - MLX-optimized Whisper for Apple Silicon (live recording)
+- `openai` - OpenAI API client (file transcription)
 - `pyaudio` - Audio capture
 - `soundfile` - Audio file handling
 - `numpy` - Numerical processing
