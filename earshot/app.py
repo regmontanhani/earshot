@@ -74,6 +74,25 @@ class EarshotApp(rumps.App):
         self._populate_device_menu(device_menu)
         settings_menu.add(device_menu)
         
+        # Auto-stop submenu
+        autostop_menu = rumps.MenuItem("Auto-Stop on Silence")
+        
+        # Enable/disable toggle
+        enabled_item = rumps.MenuItem("Enabled", callback=self.toggle_auto_stop)
+        enabled_item.state = 1 if self.settings.get("auto_stop_enabled", True) else 0
+        autostop_menu.add(enabled_item)
+        autostop_menu.add(None)  # Separator
+        
+        # Timeout options
+        for seconds in [30, 60, 120, 300]:
+            label = f"{seconds}s" if seconds < 60 else f"{seconds // 60} min"
+            item = rumps.MenuItem(label, callback=self.set_silence_timeout)
+            item.seconds = seconds  # Store value on item
+            if seconds == self.settings.get("silence_timeout", 60):
+                item.state = 1
+            autostop_menu.add(item)
+        settings_menu.add(autostop_menu)
+        
         return settings_menu
     
     def _populate_device_menu(self, device_menu: rumps.MenuItem) -> None:
@@ -148,11 +167,16 @@ class EarshotApp(rumps.App):
     
     def _start_recording(self) -> None:
         """Start live audio capture."""
+        # Only set silence timeout callback if auto-stop is enabled
+        silence_callback = None
+        if self.settings.get("auto_stop_enabled", True):
+            silence_callback = self._on_silence_timeout
+        
         self.audio_capture = AudioCapture(
             device_name=self.settings["audio_device"],
             chunk_duration=self.settings["chunk_duration"],
-            silence_timeout=self.settings["silence_timeout"],
-            on_silence_timeout=self._on_silence_timeout,
+            silence_timeout=self.settings.get("silence_timeout", 60),
+            on_silence_timeout=silence_callback,
         )
         
         if not self.audio_capture.start():
@@ -402,6 +426,30 @@ class EarshotApp(rumps.App):
             del device_menu[key]
         
         self._populate_device_menu(device_menu)
+    
+    def toggle_auto_stop(self, sender: rumps.MenuItem) -> None:
+        """Toggle auto-stop on silence."""
+        sender.state = 0 if sender.state else 1
+        self.settings["auto_stop_enabled"] = bool(sender.state)
+        save_settings(self.settings)
+        
+        status = "enabled" if sender.state else "disabled"
+        rumps.notification(
+            title="Earshot",
+            subtitle="Auto-Stop",
+            message=f"Auto-stop on silence {status}.",
+        )
+    
+    def set_silence_timeout(self, sender: rumps.MenuItem) -> None:
+        """Set the silence timeout duration."""
+        # Update checkmarks (skip Enabled and separator)
+        for item in sender.parent.values():
+            if isinstance(item, rumps.MenuItem) and hasattr(item, "seconds"):
+                item.state = 0
+        sender.state = 1
+        
+        self.settings["silence_timeout"] = sender.seconds
+        save_settings(self.settings)
     
     def quit_app(self, sender: rumps.MenuItem) -> None:
         """Quit the application."""
