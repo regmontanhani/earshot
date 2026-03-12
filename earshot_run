@@ -131,7 +131,6 @@ transcript = transcriber.transcribe(audio_file)
 
 # Speaker diarization with Ollama
 if is_ollama_available():
-    print("🤖 Identifying speakers with Ollama...")
     transcript = diarize_transcript(transcript)
 
 # Write output files
