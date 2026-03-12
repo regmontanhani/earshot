@@ -256,14 +256,14 @@ class EarshotApp(rumps.App):
                 self.audio_capture.cleanup()
     
     def _on_silence_timeout(self) -> None:
-        """Called when silence timeout is reached."""
+        """Called when silence timeout is reached (from recording thread)."""
         rumps.notification(
             title="Earshot",
             subtitle="Auto-stopping",
             message="No audio detected for 60 seconds.",
         )
-        # Schedule stop on main thread
-        self._stop_recording()
+        # Schedule stop on main thread to avoid joining current thread
+        threading.Thread(target=self._stop_recording, daemon=True).start()
     
     @rumps.clicked("Transcribe File...")
     def transcribe_file(self, sender: rumps.MenuItem) -> None:
