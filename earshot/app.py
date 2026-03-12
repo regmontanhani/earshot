@@ -109,9 +109,11 @@ class EarshotApp(rumps.App):
         except Exception:
             device_menu.add(rumps.MenuItem("(No devices found)"))
     
-    def _update_icon(self, recording: bool, level: int = 0) -> None:
-        """Update menu bar icon based on recording state and audio level."""
-        if recording:
+    def _update_icon(self, recording: bool, level: int = 0, status: str = None) -> None:
+        """Update menu bar icon based on recording state, audio level, or status."""
+        if status:
+            self.title = status
+        elif recording:
             # Show audio level visualization
             if level > 0 and level <= len(AUDIO_LEVELS):
                 self.title = f"🔴 {AUDIO_LEVELS[level - 1]}"
@@ -234,6 +236,8 @@ class EarshotApp(rumps.App):
     def _transcribe_recording(self, chunks: list[Path]) -> None:
         """Transcribe recorded chunks (runs in background thread)."""
         try:
+            self._update_icon(recording=False, status="⏳ Transcribing...")
+            
             transcriber = self._get_transcriber()
             
             if len(chunks) == 1:
@@ -243,12 +247,10 @@ class EarshotApp(rumps.App):
             
             # Attempt speaker diarization with Ollama
             if is_ollama_available():
-                rumps.notification(
-                    title="Earshot",
-                    subtitle="Identifying speakers...",
-                    message="Using Ollama for speaker diarization",
-                )
+                self._update_icon(recording=False, status="🤖 Identifying...")
                 transcript = diarize_transcript(transcript)
+            
+            self._update_icon(recording=False, status="💾 Saving...")
             
             # Generate output filename
             timestamp = self.recording_start_time.strftime("%Y-%m-%d_%H-%M-%S")
@@ -262,6 +264,7 @@ class EarshotApp(rumps.App):
                 formats=self.settings["output_formats"],
             )
             
+            self._update_icon(recording=False)
             rumps.notification(
                 title="Earshot",
                 subtitle="Transcription Complete",
@@ -269,6 +272,7 @@ class EarshotApp(rumps.App):
             )
         
         except Exception as e:
+            self._update_icon(recording=False)
             rumps.notification(
                 title="Earshot",
                 subtitle="Transcription Failed",
@@ -276,6 +280,7 @@ class EarshotApp(rumps.App):
             )
         
         finally:
+            self._update_icon(recording=False)
             if self.audio_capture:
                 self.audio_capture.cleanup()
     
@@ -340,12 +345,21 @@ class EarshotApp(rumps.App):
         temp_audio = None
         
         try:
+            self._update_icon(recording=False, status="⏳ Transcribing...")
+            
             audio_path, is_temp = prepare_audio(file_path)
             if is_temp:
                 temp_audio = audio_path
             
             transcriber = self._get_transcriber()
             transcript = transcriber.transcribe(audio_path)
+            
+            # Attempt speaker diarization with Ollama
+            if is_ollama_available():
+                self._update_icon(recording=False, status="🤖 Identifying...")
+                transcript = diarize_transcript(transcript)
+            
+            self._update_icon(recording=False, status="💾 Saving...")
             
             # Save to same directory as input file
             output_dir = file_path.parent
@@ -358,6 +372,7 @@ class EarshotApp(rumps.App):
                 formats=self.settings["output_formats"],
             )
             
+            self._update_icon(recording=False)
             rumps.notification(
                 title="Earshot",
                 subtitle="Transcription Complete",
@@ -365,6 +380,7 @@ class EarshotApp(rumps.App):
             )
         
         except Exception as e:
+            self._update_icon(recording=False)
             rumps.notification(
                 title="Earshot",
                 subtitle="Transcription Failed",
@@ -372,6 +388,7 @@ class EarshotApp(rumps.App):
             )
         
         finally:
+            self._update_icon(recording=False)
             if temp_audio and temp_audio.exists():
                 os.remove(temp_audio)
     
