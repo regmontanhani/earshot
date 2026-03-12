@@ -151,10 +151,21 @@ class OpenAITranscriber:
 
 
 def get_openai_api_key() -> Optional[str]:
-    """Get OpenAI API key from environment or config."""
+    """Get OpenAI API key from environment, .env file, or config."""
     # Check environment first
     if key := os.environ.get("OPENAI_API_KEY"):
         return key
+    
+    # Try loading from .env file
+    env_file = Path(__file__).parent.parent / ".env"
+    if env_file.exists():
+        try:
+            for line in env_file.read_text().splitlines():
+                line = line.strip()
+                if line.startswith("OPENAI_API_KEY="):
+                    return line.split("=", 1)[1].strip()
+        except Exception:
+            pass
     
     # Check config file
     from .config import load_settings
