@@ -98,9 +98,24 @@ class SettingsDialog(QDialog):
         layout.addWidget(output_group)
 
         # Transcription section
-        trans_group = QGroupBox("🎤 Transcription")
+        trans_group = QGroupBox("🎤 Audio & Transcription")
         trans_layout = QFormLayout(trans_group)
         trans_layout.setSpacing(10)
+
+        # Audio input device
+        self.audio_device_combo = QComboBox()
+        self._populate_audio_devices()
+        self.audio_device_combo.setToolTip("Select audio input device for recording")
+        trans_layout.addRow("Input Device:", self.audio_device_combo)
+
+        # Refresh button for devices
+        refresh_row = QHBoxLayout()
+        refresh_row.addStretch()
+        refresh_btn = QPushButton("🔄 Refresh Devices")
+        refresh_btn.setObjectName("secondaryBtn")
+        refresh_btn.clicked.connect(self._refresh_audio_devices)
+        refresh_row.addWidget(refresh_btn)
+        trans_layout.addRow("", refresh_row)
 
         self.model_combo = QComboBox()
         self.model_combo.addItems(["tiny", "base", "small", "medium", "large", "turbo"])
@@ -199,6 +214,12 @@ class SettingsDialog(QDialog):
         self.format_tsv.setChecked("tsv" in formats)
 
         # Transcription
+        # Set audio device
+        audio_device = self.settings.get("audio_device", "BlackHole 2ch")
+        index = self.audio_device_combo.findText(audio_device)
+        if index >= 0:
+            self.audio_device_combo.setCurrentIndex(index)
+
         model = self.settings.get("model", "small")
         index = self.model_combo.findText(model)
         if index >= 0:
@@ -230,6 +251,29 @@ class SettingsDialog(QDialog):
         )
         if path:
             self.output_dir_edit.setText(path)
+
+    def _populate_audio_devices(self) -> None:
+        """Populate audio device dropdown."""
+        import pyaudio
+
+        self.audio_device_combo.clear()
+        pa = pyaudio.PyAudio()
+
+        for i in range(pa.get_device_count()):
+            info = pa.get_device_info_by_index(i)
+            if info["maxInputChannels"] > 0:
+                self.audio_device_combo.addItem(info["name"], i)
+
+        pa.terminate()
+
+    def _refresh_audio_devices(self) -> None:
+        """Refresh the audio device list."""
+        current = self.audio_device_combo.currentText()
+        self._populate_audio_devices()
+        # Try to restore selection
+        index = self.audio_device_combo.findText(current)
+        if index >= 0:
+            self.audio_device_combo.setCurrentIndex(index)
 
     def _on_theme_changed(self, theme: str) -> None:
         """Handle theme change - apply immediately."""
@@ -269,6 +313,7 @@ class SettingsDialog(QDialog):
 
         self.settings["output_dir"] = self.output_dir_edit.text()
         self.settings["output_formats"] = formats
+        self.settings["audio_device"] = self.audio_device_combo.currentText()
         self.settings["model"] = self.model_combo.currentText()
         self.settings["theme"] = self.theme_combo.currentText()
         self.settings["opacity"] = self.opacity_slider.value() / 100

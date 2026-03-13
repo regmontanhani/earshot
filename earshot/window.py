@@ -254,8 +254,10 @@ class EarshotWindow(QMainWindow):
         # Start waveform animation
         self.waveform.set_recording(True)
 
-        # Start audio capture
+        # Start audio capture with selected device
+        device_name = self.settings.get("audio_device", "BlackHole 2ch")
         self._audio_capture = AudioCapture(
+            device_name=device_name,
             on_audio_level=self._on_audio_level,
         )
         self._audio_capture.start()
