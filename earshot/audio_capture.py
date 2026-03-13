@@ -126,7 +126,7 @@ class AudioCapture:
         """
         self.recording = False
         
-        if self.thread:
+        if self.thread and self.thread is not threading.current_thread():
             self.thread.join(timeout=2.0)
             self.thread = None
         
