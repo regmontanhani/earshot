@@ -49,168 +49,186 @@ class SettingsDialog(QDialog):
     def _setup_window(self) -> None:
         """Configure dialog properties."""
         self.setWindowTitle("Settings")
-        self.setMinimumWidth(450)
+        self.setMinimumWidth(420)
+        self.setMaximumWidth(500)
         self.setModal(True)
 
     def _setup_ui(self) -> None:
         """Build the settings UI."""
         layout = QVBoxLayout(self)
-        layout.setSpacing(16)
-        layout.setContentsMargins(20, 20, 20, 20)
+        layout.setSpacing(12)
+        layout.setContentsMargins(24, 24, 24, 24)
 
-        # Output section
-        output_group = QGroupBox("📁 Output")
-        output_layout = QFormLayout(output_group)
-        output_layout.setSpacing(10)
+        # ── Output ──
+        output_group = QGroupBox("Output")
+        output_layout = QVBoxLayout(output_group)
+        output_layout.setSpacing(12)
+        output_layout.setContentsMargins(16, 24, 16, 16)
 
         # Output directory
+        dir_label = QLabel("Save location")
+        dir_label.setObjectName("statusLabel")
+        output_layout.addWidget(dir_label)
+
         dir_row = QHBoxLayout()
+        dir_row.setSpacing(8)
         self.output_dir_edit = QLineEdit()
         self.output_dir_edit.setReadOnly(True)
-        dir_row.addWidget(self.output_dir_edit)
+        dir_row.addWidget(self.output_dir_edit, 1)
 
         browse_btn = QPushButton("Browse")
-        browse_btn.setFixedWidth(80)
+        browse_btn.setObjectName("secondaryBtn")
+        browse_btn.setFixedWidth(72)
         browse_btn.clicked.connect(self._browse_output_dir)
         dir_row.addWidget(browse_btn)
-
-        output_layout.addRow("Directory:", dir_row)
+        output_layout.addLayout(dir_row)
 
         # Output formats
-        formats_row = QHBoxLayout()
-        formats_row.setSpacing(12)
+        fmt_label = QLabel("Export formats")
+        fmt_label.setObjectName("statusLabel")
+        output_layout.addWidget(fmt_label)
 
+        formats_row = QHBoxLayout()
+        formats_row.setSpacing(16)
         self.format_json = QCheckBox("JSON")
         self.format_txt = QCheckBox("TXT")
         self.format_srt = QCheckBox("SRT")
-        self.format_vtt = QCheckBox("VTT")
-        self.format_tsv = QCheckBox("TSV")
-
         formats_row.addWidget(self.format_json)
         formats_row.addWidget(self.format_txt)
         formats_row.addWidget(self.format_srt)
-        formats_row.addWidget(self.format_vtt)
-        formats_row.addWidget(self.format_tsv)
         formats_row.addStretch()
-
-        output_layout.addRow("Formats:", formats_row)
+        output_layout.addLayout(formats_row)
 
         layout.addWidget(output_group)
 
-        # Transcription section
-        trans_group = QGroupBox("🎤 Audio & Transcription")
-        trans_layout = QFormLayout(trans_group)
-        trans_layout.setSpacing(10)
+        # ── Audio & Transcription ──
+        trans_group = QGroupBox("Audio & Transcription")
+        trans_layout = QVBoxLayout(trans_group)
+        trans_layout.setSpacing(12)
+        trans_layout.setContentsMargins(16, 24, 16, 16)
 
         # Audio input device
+        device_label = QLabel("Input device")
+        device_label.setObjectName("statusLabel")
+        trans_layout.addWidget(device_label)
+
+        device_row = QHBoxLayout()
+        device_row.setSpacing(8)
         self.audio_device_combo = QComboBox()
         self._populate_audio_devices()
         self.audio_device_combo.setToolTip("Select audio input device for recording")
-        trans_layout.addRow("Input Device:", self.audio_device_combo)
+        device_row.addWidget(self.audio_device_combo, 1)
 
-        # Refresh button for devices
-        refresh_row = QHBoxLayout()
-        refresh_row.addStretch()
-        refresh_btn = QPushButton("🔄 Refresh Devices")
+        refresh_btn = QPushButton("Refresh")
         refresh_btn.setObjectName("secondaryBtn")
+        refresh_btn.setFixedWidth(72)
         refresh_btn.clicked.connect(self._refresh_audio_devices)
-        refresh_row.addWidget(refresh_btn)
-        trans_layout.addRow("", refresh_row)
+        device_row.addWidget(refresh_btn)
+        trans_layout.addLayout(device_row)
+
+        # Model
+        model_label = QLabel("Whisper model")
+        model_label.setObjectName("statusLabel")
+        trans_layout.addWidget(model_label)
 
         self.model_combo = QComboBox()
         self.model_combo.addItems(["tiny", "base", "small", "medium", "large-v3", "turbo"])
         self.model_combo.setToolTip(
-            "Whisper model size (runs locally on your Mac):\n"
-            "• tiny/base: Fast, lower quality\n"
-            "• small: Good balance (recommended)\n"
-            "• medium/large-v3: Best quality, slower\n"
-            "• turbo: Fast + good quality"
+            "tiny/base: Fast, lower quality\n"
+            "small: Good balance (recommended)\n"
+            "medium/large-v3: Best quality, slower\n"
+            "turbo: Fast + good quality"
         )
-        trans_layout.addRow("Model:", self.model_combo)
+        trans_layout.addWidget(self.model_combo)
 
-        # Local indicator
-        local_hint = QLabel("✅ Transcription runs 100% locally - no data leaves your Mac")
+        local_hint = QLabel("All transcription runs locally on your Mac")
         local_hint.setObjectName("statusLabel")
-        local_hint.setWordWrap(True)
-        trans_layout.addRow("", local_hint)
+        trans_layout.addWidget(local_hint)
 
         layout.addWidget(trans_group)
 
-        # Appearance section
-        appearance_group = QGroupBox("🎨 Appearance")
-        appearance_layout = QFormLayout(appearance_group)
-        appearance_layout.setSpacing(10)
+        # ── Appearance ──
+        appearance_group = QGroupBox("Appearance")
+        appearance_layout = QVBoxLayout(appearance_group)
+        appearance_layout.setSpacing(12)
+        appearance_layout.setContentsMargins(16, 24, 16, 16)
 
+        theme_row = QHBoxLayout()
+        theme_row.setSpacing(8)
+        theme_label = QLabel("Theme")
+        theme_label.setFixedWidth(60)
+        theme_row.addWidget(theme_label)
         self.theme_combo = QComboBox()
         self.theme_combo.addItems(["dark", "light"])
         self.theme_combo.currentTextChanged.connect(self._on_theme_changed)
-        appearance_layout.addRow("Theme:", self.theme_combo)
+        theme_row.addWidget(self.theme_combo, 1)
+        appearance_layout.addLayout(theme_row)
 
-        # Opacity slider
         opacity_row = QHBoxLayout()
+        opacity_row.setSpacing(8)
+        opacity_label = QLabel("Opacity")
+        opacity_label.setFixedWidth(60)
+        opacity_row.addWidget(opacity_label)
         self.opacity_slider = QSlider(Qt.Orientation.Horizontal)
         self.opacity_slider.setRange(50, 100)
-        self.opacity_slider.setTickInterval(10)
-        self.opacity_slider.setTickPosition(QSlider.TickPosition.TicksBelow)
         self.opacity_slider.valueChanged.connect(self._on_opacity_changed)
-        opacity_row.addWidget(self.opacity_slider)
-
+        opacity_row.addWidget(self.opacity_slider, 1)
         self.opacity_label = QLabel("100%")
-        self.opacity_label.setFixedWidth(40)
+        self.opacity_label.setFixedWidth(36)
         opacity_row.addWidget(self.opacity_label)
-
-        appearance_layout.addRow("Opacity:", opacity_row)
+        appearance_layout.addLayout(opacity_row)
 
         self.always_on_top = QCheckBox("Always on top")
-        appearance_layout.addRow("", self.always_on_top)
+        appearance_layout.addWidget(self.always_on_top)
 
         layout.addWidget(appearance_group)
 
-        # API Keys section
-        api_group = QGroupBox("🔑 API Keys")
-        api_layout = QFormLayout(api_group)
-        api_layout.setSpacing(10)
+        # ── API Keys ──
+        api_group = QGroupBox("Cloud Transcription (Optional)")
+        api_layout = QVBoxLayout(api_group)
+        api_layout.setSpacing(12)
+        api_layout.setContentsMargins(16, 24, 16, 16)
+
+        api_hint = QLabel("Leave blank to use local faster-whisper (recommended)")
+        api_hint.setObjectName("statusLabel")
+        api_hint.setWordWrap(True)
+        api_layout.addWidget(api_hint)
 
         api_row = QHBoxLayout()
+        api_row.setSpacing(8)
         self.openai_key_edit = QLineEdit()
         self.openai_key_edit.setEchoMode(QLineEdit.EchoMode.Password)
-        self.openai_key_edit.setPlaceholderText("sk-... (optional)")
-        api_row.addWidget(self.openai_key_edit)
+        self.openai_key_edit.setPlaceholderText("sk-...")
+        api_row.addWidget(self.openai_key_edit, 1)
 
         self.show_key_btn = QPushButton("Show")
-        self.show_key_btn.setFixedWidth(60)
+        self.show_key_btn.setObjectName("secondaryBtn")
+        self.show_key_btn.setFixedWidth(56)
         self.show_key_btn.setCheckable(True)
         self.show_key_btn.toggled.connect(self._toggle_key_visibility)
         api_row.addWidget(self.show_key_btn)
-
-        api_layout.addRow("OpenAI:", api_row)
-
-        hint_label = QLabel(
-            "Optional: Only needed if you want cloud transcription.\n"
-            "Leave blank to use local faster-whisper (recommended)."
-        )
-        hint_label.setObjectName("statusLabel")
-        hint_label.setWordWrap(True)
-        api_layout.addRow("", hint_label)
+        api_layout.addLayout(api_row)
 
         layout.addWidget(api_group)
 
-        # Separator
-        sep = QFrame()
-        sep.setFrameShape(QFrame.Shape.HLine)
-        layout.addWidget(sep)
+        # ── Action buttons ──
+        layout.addSpacing(4)
 
-        # Buttons
         button_row = QHBoxLayout()
+        button_row.setSpacing(8)
         button_row.addStretch()
 
         cancel_btn = QPushButton("Cancel")
         cancel_btn.setObjectName("secondaryBtn")
+        cancel_btn.setFixedWidth(80)
+        cancel_btn.setCursor(Qt.CursorShape.PointingHandCursor)
         cancel_btn.clicked.connect(self.reject)
         button_row.addWidget(cancel_btn)
 
         save_btn = QPushButton("Save")
         save_btn.setObjectName("recordBtn")
+        save_btn.setFixedWidth(80)
+        save_btn.setCursor(Qt.CursorShape.PointingHandCursor)
         save_btn.clicked.connect(self._save)
         button_row.addWidget(save_btn)
 
@@ -218,19 +236,14 @@ class SettingsDialog(QDialog):
 
     def _load_values(self) -> None:
         """Load current settings into UI."""
-        # Output
         output_dir = self.settings.get("output_dir", "~/Documents/Earshot")
         self.output_dir_edit.setText(str(Path(output_dir).expanduser()))
 
-        formats = self.settings.get("output_formats", ["json", "txt", "srt", "vtt"])
+        formats = self.settings.get("output_formats", ["json", "txt", "srt"])
         self.format_json.setChecked("json" in formats)
         self.format_txt.setChecked("txt" in formats)
         self.format_srt.setChecked("srt" in formats)
-        self.format_vtt.setChecked("vtt" in formats)
-        self.format_tsv.setChecked("tsv" in formats)
 
-        # Transcription
-        # Set audio device
         audio_device = self.settings.get("audio_device", "BlackHole 2ch")
         index = self.audio_device_combo.findText(audio_device)
         if index >= 0:
@@ -241,7 +254,6 @@ class SettingsDialog(QDialog):
         if index >= 0:
             self.model_combo.setCurrentIndex(index)
 
-        # Appearance
         theme = self.settings.get("theme", "dark")
         index = self.theme_combo.findText(theme)
         if index >= 0:
@@ -253,18 +265,13 @@ class SettingsDialog(QDialog):
 
         self.always_on_top.setChecked(self.settings.get("always_on_top", True))
 
-        # API Keys
         api_key = self.settings.get("openai_api_key", "") or ""
         self.openai_key_edit.setText(api_key)
 
     def _browse_output_dir(self) -> None:
         """Open directory browser."""
         current = self.output_dir_edit.text()
-        path = QFileDialog.getExistingDirectory(
-            self,
-            "Select Output Directory",
-            current,
-        )
+        path = QFileDialog.getExistingDirectory(self, "Select Output Directory", current)
         if path:
             self.output_dir_edit.setText(path)
 
@@ -286,7 +293,6 @@ class SettingsDialog(QDialog):
         """Refresh the audio device list."""
         current = self.audio_device_combo.currentText()
         self._populate_audio_devices()
-        # Try to restore selection
         index = self.audio_device_combo.findText(current)
         if index >= 0:
             self.audio_device_combo.setCurrentIndex(index)
@@ -298,8 +304,6 @@ class SettingsDialog(QDialog):
     def _on_opacity_changed(self, value: int) -> None:
         """Handle opacity slider change."""
         self.opacity_label.setText(f"{value}%")
-
-        # Apply immediately to parent window
         if self.parent():
             self.parent().setWindowOpacity(value / 100)
 
@@ -314,7 +318,6 @@ class SettingsDialog(QDialog):
 
     def _save(self) -> None:
         """Save settings and close dialog."""
-        # Collect values
         formats = []
         if self.format_json.isChecked():
             formats.append("json")
@@ -322,10 +325,6 @@ class SettingsDialog(QDialog):
             formats.append("txt")
         if self.format_srt.isChecked():
             formats.append("srt")
-        if self.format_vtt.isChecked():
-            formats.append("vtt")
-        if self.format_tsv.isChecked():
-            formats.append("tsv")
 
         self.settings["output_dir"] = self.output_dir_edit.text()
         self.settings["output_formats"] = formats
@@ -335,7 +334,6 @@ class SettingsDialog(QDialog):
         self.settings["opacity"] = self.opacity_slider.value() / 100
         self.settings["always_on_top"] = self.always_on_top.isChecked()
 
-        # Handle API key
         api_key = self.openai_key_edit.text().strip()
         if api_key:
             self.settings["openai_api_key"] = api_key
@@ -344,7 +342,6 @@ class SettingsDialog(QDialog):
 
         self.on_save(self.settings)
 
-        # Restart monitoring if device changed
         if hasattr(self.parent(), "_restart_monitoring"):
             self.parent()._restart_monitoring()
 

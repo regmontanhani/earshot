@@ -12,14 +12,6 @@ def format_timestamp_srt(seconds: float) -> str:
     return f"{hours:02d}:{minutes:02d}:{secs:06.3f}".replace(".", ",")
 
 
-def format_timestamp_vtt(seconds: float) -> str:
-    """Format seconds as VTT timestamp (HH:MM:SS.mmm)."""
-    hours = int(seconds // 3600)
-    minutes = int((seconds % 3600) // 60)
-    secs = seconds % 60
-    return f"{hours:02d}:{minutes:02d}:{secs:06.3f}"
-
-
 def write_json(transcript: dict, output_path: Path) -> None:
     """Write transcript as JSON."""
     with open(output_path, "w", encoding="utf-8") as f:
@@ -44,11 +36,9 @@ def write_srt(transcript: dict, output_path: Path) -> None:
             text = seg.get("text", "").strip()
             speaker = seg.get("speaker", "")
 
-            # Skip empty or zero-duration segments
             if not text or end <= start:
                 continue
 
-            # Prepend speaker label if available
             if speaker:
                 text = f"[{speaker}]: {text}"
 
@@ -58,73 +48,25 @@ def write_srt(transcript: dict, output_path: Path) -> None:
             index += 1
 
 
-def write_vtt(transcript: dict, output_path: Path) -> None:
-    """Write transcript as WebVTT subtitles."""
-    segments = transcript.get("segments", [])
-
-    with open(output_path, "w", encoding="utf-8") as f:
-        f.write("WEBVTT\n\n")
-
-        for seg in segments:
-            start = seg.get("start", 0)
-            end = seg.get("end", 0)
-            text = seg.get("text", "").strip()
-            speaker = seg.get("speaker", "")
-
-            # Skip empty or zero-duration segments
-            if not text or end <= start:
-                continue
-
-            # Prepend speaker label if available
-            if speaker:
-                text = f"[{speaker}]: {text}"
-
-            f.write(f"{format_timestamp_vtt(start)} --> {format_timestamp_vtt(end)}\n")
-            f.write(f"{text}\n\n")
-
-
-def write_tsv(transcript: dict, output_path: Path) -> None:
-    """Write transcript as TSV (tab-separated values)."""
-    segments = transcript.get("segments", [])
-
-    with open(output_path, "w", encoding="utf-8") as f:
-        f.write("start\tend\tspeaker\ttext\n")
-
-        for seg in segments:
-            start = seg.get("start", 0)
-            end = seg.get("end", 0)
-            text = seg.get("text", "").strip().replace("\t", " ")
-            speaker = seg.get("speaker", "").replace("\t", " ")
-
-            # Skip empty or zero-duration segments
-            if not text or end <= start:
-                continue
-
-            start_ms = int(start * 1000)
-            end_ms = int(end * 1000)
-            f.write(f"{start_ms}\t{end_ms}\t{speaker}\t{text}\n")
-
-
 def write_all_formats(
     transcript: dict,
     output_dir: Path,
     base_name: str,
     formats: list[str] | None = None,
 ) -> list[Path]:
-    """
-    Write transcript in all specified formats.
+    """Write transcript in all specified formats.
 
     Args:
         transcript: Transcript dictionary with 'text' and 'segments'
         output_dir: Directory to write files to
         base_name: Base filename (without extension)
-        formats: List of formats to write. Defaults to all formats.
+        formats: List of formats to write. Defaults to json, txt, srt.
 
     Returns:
         List of paths to written files
     """
     if formats is None:
-        formats = ["json", "txt", "srt", "vtt", "tsv"]
+        formats = ["json", "txt", "srt"]
 
     output_dir = Path(output_dir)
     output_dir.mkdir(parents=True, exist_ok=True)
@@ -133,8 +75,6 @@ def write_all_formats(
         "json": write_json,
         "txt": write_txt,
         "srt": write_srt,
-        "vtt": write_vtt,
-        "tsv": write_tsv,
     }
 
     written_files = []

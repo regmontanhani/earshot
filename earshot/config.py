@@ -12,7 +12,7 @@ DEFAULTS = {
     "auto_stop_enabled": True,
     "silence_timeout": 60,
     "chunk_duration": 30,
-    "output_formats": ["json", "txt", "srt", "vtt", "tsv"],
+    "output_formats": ["json", "txt", "srt"],
 }
 
 CONFIG_DIR = Path.home() / ".config" / "earshot"
