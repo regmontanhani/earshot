@@ -27,6 +27,7 @@ class AudioCapture:
         silence_timeout: int = 60,
         on_chunk_ready: Callable[[Path], None] | None = None,
         on_silence_timeout: Callable[[], None] | None = None,
+        on_audio_level: Callable[[float], None] | None = None,
     ):
         """
         Initialize audio capture.
@@ -37,12 +38,14 @@ class AudioCapture:
             silence_timeout: Seconds of silence before auto-stopping
             on_chunk_ready: Callback when a chunk is ready for processing
             on_silence_timeout: Callback when silence timeout is reached
+            on_audio_level: Callback with current audio level (0.0-1.0)
         """
         self.device_name = device_name
         self.chunk_duration = chunk_duration
         self.silence_timeout = silence_timeout
         self.on_chunk_ready = on_chunk_ready
         self.on_silence_timeout = on_silence_timeout
+        self.on_audio_level = on_audio_level
 
         self.audio = pyaudio.PyAudio()
         self.stream = None
@@ -169,6 +172,10 @@ class AudioCapture:
                     # Max int16 amplitude is ~32768, typical speech is 500-5000
                     normalized_level = min(1.0, amplitude / 5000.0)
                     self._set_current_level(normalized_level)
+
+                    # Call level callback if set
+                    if self.on_audio_level:
+                        self.on_audio_level(normalized_level)
 
                     if amplitude > self.silence_threshold:
                         self.last_sound_time = time.time()
