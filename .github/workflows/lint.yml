@@ -5,6 +5,7 @@ on:
     paths:
       - '**.py'
       - 'earshot_run'
+      - '.github/workflows/lint.yml'
 
 jobs:
   lint:
