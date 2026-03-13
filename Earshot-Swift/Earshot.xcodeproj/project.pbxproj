@@ -1,0 +1,770 @@
+// !$*UTF8*$!
+{
+	archiveVersion = 1;
+	classes = {
+	};
+	objectVersion = 77;
+	objects = {
+
+/* Begin PBXBuildFile section */
+		0A0826AAD4B3FEACA0DBB764 /* TextExporterTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = B65817BB12D05FD122029E2F /* TextExporterTests.swift */; };
+		125B98015126FED08ECFE0D7 /* SettingsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8FE1E7CFC1D888E1920A408B /* SettingsView.swift */; };
+		170BBE269E7B3E1A6F9EF705 /* AppAudioPicker.swift in Sources */ = {isa = PBXBuildFile; fileRef = 53520FCCB1F9EEBB9BCBBB81 /* AppAudioPicker.swift */; };
+		272A47C96B972567F5BF0E44 /* SRTExporterTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = C38861CCF340A3D6C931894F /* SRTExporterTests.swift */; };
+		2B7BCFDEAE075329E156EBA2 /* EarshotApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = DE72259ECB3C8AFA7659ECF4 /* EarshotApp.swift */; };
+		2D0D25BCEF383372A09DA673 /* ExportManagerTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7FEA65E5F507FF96E4106263 /* ExportManagerTests.swift */; };
+		30CEFA5FD86855E6A4D334D0 /* EarshotKit in Frameworks */ = {isa = PBXBuildFile; productRef = C19CDA64D2438658A89E387A /* EarshotKit */; };
+		31DAE2A6E1C19CC3B6CFA022 /* AudioChunkTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0C3FADFBF845D4CF81BC4027 /* AudioChunkTests.swift */; };
+		3848D9764E678B4A1729DB93 /* JSONExporterTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = CFF2A9028A0A89A298BDA65A /* JSONExporterTests.swift */; };
+		3B7AB92319BAAA5E2C2A2A0E /* EarshotApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7960AF6DF99E82F7DECA7A30 /* EarshotApp.swift */; };
+		3E594D002A126AC792A646B2 /* TranscriptTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 84ECCB884C21B8D31D1DA69F /* TranscriptTests.swift */; };
+		3FDAC70E3DDD3B60C10E5215 /* MainView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1C7E4F9ED24497226F9ACE15 /* MainView.swift */; };
+		4AAEBBD6F5B6A6934EF009F0 /* TranscriptionEngineTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 922B558A94D1461AF3999712 /* TranscriptionEngineTests.swift */; };
+		647A742FC520A27BE972A6FF /* EarshotKit in Frameworks */ = {isa = PBXBuildFile; productRef = 66E481B13C5277D0D67F2707 /* EarshotKit */; };
+		6498A2A3CB885D7DFAF80541 /* EarshotKit in Frameworks */ = {isa = PBXBuildFile; productRef = 3700E457D9CC598A6F9C5498 /* EarshotKit */; };
+		943D3E0C69C8FA8CFB215314 /* RecordingViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = B04BAF56D8C85DDBB677695B /* RecordingViewModel.swift */; };
+		D213A9DF235C9EBD583C5D71 /* ScreenCaptureManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0C84E6209F5ED0FAC8CF8EAF /* ScreenCaptureManager.swift */; };
+		DB089D1AAF8B23356E3036D6 /* FloatingPanel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 53817E7733C654F17D618C57 /* FloatingPanel.swift */; };
+		DFA6F11ABEAF37E28DD5F793 /* SessionTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = CBC58DC542BD944EB364B5D2 /* SessionTests.swift */; };
+		E390F13346C1B53B2AF0CDD7 /* EarshotKit in Frameworks */ = {isa = PBXBuildFile; productRef = 219F4094F1E016E39E2A1A01 /* EarshotKit */; };
+		ECC8FCCF271F3570CFEC2B97 /* SettingsTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 205A6D286ED27B75595BA7B7 /* SettingsTests.swift */; };
+		F9687CDCC14386AC92ACC985 /* SampleHandler.swift in Sources */ = {isa = PBXBuildFile; fileRef = BB5F7BF45834F794A40624EB /* SampleHandler.swift */; };
+/* End PBXBuildFile section */
+
+/* Begin PBXFileReference section */
+		0C3FADFBF845D4CF81BC4027 /* AudioChunkTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AudioChunkTests.swift; sourceTree = "<group>"; };
+		0C84E6209F5ED0FAC8CF8EAF /* ScreenCaptureManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ScreenCaptureManager.swift; sourceTree = "<group>"; };
+		1C7E4F9ED24497226F9ACE15 /* MainView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MainView.swift; sourceTree = "<group>"; };
+		205A6D286ED27B75595BA7B7 /* SettingsTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SettingsTests.swift; sourceTree = "<group>"; };
+		31739FA6F0FBC009A68AB154 /* EarshotKit */ = {isa = PBXFileReference; lastKnownFileType = folder; name = EarshotKit; path = EarshotKit; sourceTree = SOURCE_ROOT; };
+		53520FCCB1F9EEBB9BCBBB81 /* AppAudioPicker.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppAudioPicker.swift; sourceTree = "<group>"; };
+		53817E7733C654F17D618C57 /* FloatingPanel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FloatingPanel.swift; sourceTree = "<group>"; };
+		5A6B919E8A73FE257993B2FC /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist; path = Info.plist; sourceTree = "<group>"; };
+		5B397E1F067B11420AF42047 /* Earshot.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = Earshot.entitlements; sourceTree = "<group>"; };
+		73C770F7F8ADE3C4C35AC888 /* EarshotBroadcastExt.appex */ = {isa = PBXFileReference; includeInIndex = 0; lastKnownFileType = "wrapper.app-extension"; path = EarshotBroadcastExt.appex; sourceTree = BUILT_PRODUCTS_DIR; };
+		7960AF6DF99E82F7DECA7A30 /* EarshotApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = EarshotApp.swift; sourceTree = "<group>"; };
+		7E2796D36963D9E6DF659E8D /* EarshotKitTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = EarshotKitTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
+		7FEA65E5F507FF96E4106263 /* ExportManagerTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ExportManagerTests.swift; sourceTree = "<group>"; };
+		84ECCB884C21B8D31D1DA69F /* TranscriptTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TranscriptTests.swift; sourceTree = "<group>"; };
+		8FDB33FCD40470917C508065 /* Earshot-iOS.app */ = {isa = PBXFileReference; includeInIndex = 0; lastKnownFileType = wrapper.application; path = "Earshot-iOS.app"; sourceTree = BUILT_PRODUCTS_DIR; };
+		8FE1E7CFC1D888E1920A408B /* SettingsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SettingsView.swift; sourceTree = "<group>"; };
+		922B558A94D1461AF3999712 /* TranscriptionEngineTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TranscriptionEngineTests.swift; sourceTree = "<group>"; };
+		B04BAF56D8C85DDBB677695B /* RecordingViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RecordingViewModel.swift; sourceTree = "<group>"; };
+		B65817BB12D05FD122029E2F /* TextExporterTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TextExporterTests.swift; sourceTree = "<group>"; };
+		BB5F7BF45834F794A40624EB /* SampleHandler.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SampleHandler.swift; sourceTree = "<group>"; };
+		C38861CCF340A3D6C931894F /* SRTExporterTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SRTExporterTests.swift; sourceTree = "<group>"; };
+		CBC58DC542BD944EB364B5D2 /* SessionTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SessionTests.swift; sourceTree = "<group>"; };
+		CFF2A9028A0A89A298BDA65A /* JSONExporterTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = JSONExporterTests.swift; sourceTree = "<group>"; };
+		D417CBEB2EF403CE505CD8E9 /* Earshot.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = Earshot.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		DE72259ECB3C8AFA7659ECF4 /* EarshotApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = EarshotApp.swift; sourceTree = "<group>"; };
+		EAABB5ED2348402B07CA19B6 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist; path = Info.plist; sourceTree = "<group>"; };
+		F079FBB30EE2ED7CCD387A1F /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist; path = Info.plist; sourceTree = "<group>"; };
+/* End PBXFileReference section */
+
+/* Begin PBXFrameworksBuildPhase section */
+		37A5931740E07FA79124AF89 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				E390F13346C1B53B2AF0CDD7 /* EarshotKit in Frameworks */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		5076608F52CEA6F6C559D93A /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				6498A2A3CB885D7DFAF80541 /* EarshotKit in Frameworks */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		ABD18C9466C9307CA598348F /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				30CEFA5FD86855E6A4D334D0 /* EarshotKit in Frameworks */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		C239097EC03D7CA35712CD6B /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				647A742FC520A27BE972A6FF /* EarshotKit in Frameworks */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXFrameworksBuildPhase section */
+
+/* Begin PBXGroup section */
+		10D38104186A3CC5E329DE2E /* App */ = {
+			isa = PBXGroup;
+			children = (
+				DE72259ECB3C8AFA7659ECF4 /* EarshotApp.swift */,
+			);
+			path = App;
+			sourceTree = "<group>";
+		};
+		11FE436FA8A6A197A1538DBC /* Earshot-iOS */ = {
+			isa = PBXGroup;
+			children = (
+				10D38104186A3CC5E329DE2E /* App */,
+				F2461C841F6D9C70CDA39BE7 /* BroadcastExt */,
+				EAABB5ED2348402B07CA19B6 /* Info.plist */,
+			);
+			path = "Earshot-iOS";
+			sourceTree = "<group>";
+		};
+		169EDC5F604B37911722395D /* Views */ = {
+			isa = PBXGroup;
+			children = (
+				1C7E4F9ED24497226F9ACE15 /* MainView.swift */,
+				8FE1E7CFC1D888E1920A408B /* SettingsView.swift */,
+			);
+			path = Views;
+			sourceTree = "<group>";
+		};
+		1C073821D0B8F34D0A799E95 /* Earshot-macOS */ = {
+			isa = PBXGroup;
+			children = (
+				7CA7D007B06D12ED8745A7B8 /* App */,
+				4F7FA5A669C9BA0764E61BB9 /* Audio */,
+				9E0C492EE02222D63FC0D210 /* ViewModels */,
+				169EDC5F604B37911722395D /* Views */,
+				5B397E1F067B11420AF42047 /* Earshot.entitlements */,
+				F079FBB30EE2ED7CCD387A1F /* Info.plist */,
+			);
+			path = "Earshot-macOS";
+			sourceTree = "<group>";
+		};
+		373449AA16D97653E16A2BF2 /* Products */ = {
+			isa = PBXGroup;
+			children = (
+				8FDB33FCD40470917C508065 /* Earshot-iOS.app */,
+				D417CBEB2EF403CE505CD8E9 /* Earshot.app */,
+				73C770F7F8ADE3C4C35AC888 /* EarshotBroadcastExt.appex */,
+				7E2796D36963D9E6DF659E8D /* EarshotKitTests.xctest */,
+			);
+			name = Products;
+			sourceTree = "<group>";
+		};
+		3D4FAA5E4C620EBBC681012A /* EarshotKit */ = {
+			isa = PBXGroup;
+			children = (
+				C181615441D8D53397DEF834 /* Tests */,
+			);
+			path = EarshotKit;
+			sourceTree = "<group>";
+		};
+		4F7FA5A669C9BA0764E61BB9 /* Audio */ = {
+			isa = PBXGroup;
+			children = (
+				53520FCCB1F9EEBB9BCBBB81 /* AppAudioPicker.swift */,
+				0C84E6209F5ED0FAC8CF8EAF /* ScreenCaptureManager.swift */,
+			);
+			path = Audio;
+			sourceTree = "<group>";
+		};
+		6046E63A491B7765FC7B91E7 /* Export */ = {
+			isa = PBXGroup;
+			children = (
+				7FEA65E5F507FF96E4106263 /* ExportManagerTests.swift */,
+				CFF2A9028A0A89A298BDA65A /* JSONExporterTests.swift */,
+				C38861CCF340A3D6C931894F /* SRTExporterTests.swift */,
+				B65817BB12D05FD122029E2F /* TextExporterTests.swift */,
+			);
+			path = Export;
+			sourceTree = "<group>";
+		};
+		7CA7D007B06D12ED8745A7B8 /* App */ = {
+			isa = PBXGroup;
+			children = (
+				7960AF6DF99E82F7DECA7A30 /* EarshotApp.swift */,
+				53817E7733C654F17D618C57 /* FloatingPanel.swift */,
+			);
+			path = App;
+			sourceTree = "<group>";
+		};
+		82557ABE88941B0EB4353635 /* Transcription */ = {
+			isa = PBXGroup;
+			children = (
+				922B558A94D1461AF3999712 /* TranscriptionEngineTests.swift */,
+			);
+			path = Transcription;
+			sourceTree = "<group>";
+		};
+		88D37AC54B0D51722EF4C16F /* Packages */ = {
+			isa = PBXGroup;
+			children = (
+				31739FA6F0FBC009A68AB154 /* EarshotKit */,
+			);
+			name = Packages;
+			sourceTree = "<group>";
+		};
+		993B8D204E4E7B3167DF2E35 = {
+			isa = PBXGroup;
+			children = (
+				11FE436FA8A6A197A1538DBC /* Earshot-iOS */,
+				1C073821D0B8F34D0A799E95 /* Earshot-macOS */,
+				3D4FAA5E4C620EBBC681012A /* EarshotKit */,
+				88D37AC54B0D51722EF4C16F /* Packages */,
+				373449AA16D97653E16A2BF2 /* Products */,
+			);
+			sourceTree = "<group>";
+		};
+		9E0C492EE02222D63FC0D210 /* ViewModels */ = {
+			isa = PBXGroup;
+			children = (
+				B04BAF56D8C85DDBB677695B /* RecordingViewModel.swift */,
+			);
+			path = ViewModels;
+			sourceTree = "<group>";
+		};
+		B018D5246A6120776DDD00CC /* Audio */ = {
+			isa = PBXGroup;
+			children = (
+				0C3FADFBF845D4CF81BC4027 /* AudioChunkTests.swift */,
+			);
+			path = Audio;
+			sourceTree = "<group>";
+		};
+		C181615441D8D53397DEF834 /* Tests */ = {
+			isa = PBXGroup;
+			children = (
+				D1D914F6D3DACFD5C3EB5A7F /* EarshotKitTests */,
+			);
+			path = Tests;
+			sourceTree = "<group>";
+		};
+		D1D914F6D3DACFD5C3EB5A7F /* EarshotKitTests */ = {
+			isa = PBXGroup;
+			children = (
+				B018D5246A6120776DDD00CC /* Audio */,
+				6046E63A491B7765FC7B91E7 /* Export */,
+				FC48B61CD3E7A3A33DF3AD37 /* Models */,
+				82557ABE88941B0EB4353635 /* Transcription */,
+			);
+			path = EarshotKitTests;
+			sourceTree = "<group>";
+		};
+		F2461C841F6D9C70CDA39BE7 /* BroadcastExt */ = {
+			isa = PBXGroup;
+			children = (
+				5A6B919E8A73FE257993B2FC /* Info.plist */,
+				BB5F7BF45834F794A40624EB /* SampleHandler.swift */,
+			);
+			path = BroadcastExt;
+			sourceTree = "<group>";
+		};
+		FC48B61CD3E7A3A33DF3AD37 /* Models */ = {
+			isa = PBXGroup;
+			children = (
+				CBC58DC542BD944EB364B5D2 /* SessionTests.swift */,
+				205A6D286ED27B75595BA7B7 /* SettingsTests.swift */,
+				84ECCB884C21B8D31D1DA69F /* TranscriptTests.swift */,
+			);
+			path = Models;
+			sourceTree = "<group>";
+		};
+/* End PBXGroup section */
+
+/* Begin PBXNativeTarget section */
+		311CEF42A1C2B4B009D575E1 /* Earshot-iOS */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = F7503593A283E0F225F09C9D /* Build configuration list for PBXNativeTarget "Earshot-iOS" */;
+			buildPhases = (
+				4A622A37D34A516C5784664B /* Sources */,
+				37A5931740E07FA79124AF89 /* Frameworks */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+			);
+			name = "Earshot-iOS";
+			packageProductDependencies = (
+				219F4094F1E016E39E2A1A01 /* EarshotKit */,
+			);
+			productName = "Earshot-iOS";
+			productReference = 8FDB33FCD40470917C508065 /* Earshot-iOS.app */;
+			productType = "com.apple.product-type.application";
+		};
+		9F16C8CE9DF679B00B56DF3A /* EarshotKitTests */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = 48ECB78E744860B3395DEAAA /* Build configuration list for PBXNativeTarget "EarshotKitTests" */;
+			buildPhases = (
+				CBFF43054AA57166546F1B61 /* Sources */,
+				5076608F52CEA6F6C559D93A /* Frameworks */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+			);
+			name = EarshotKitTests;
+			packageProductDependencies = (
+				3700E457D9CC598A6F9C5498 /* EarshotKit */,
+			);
+			productName = EarshotKitTests;
+			productReference = 7E2796D36963D9E6DF659E8D /* EarshotKitTests.xctest */;
+			productType = "com.apple.product-type.bundle.unit-test";
+		};
+		AAC8C8C3C3B62495E1285530 /* EarshotBroadcastExt */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = B53AA22673FD3C3A83719A24 /* Build configuration list for PBXNativeTarget "EarshotBroadcastExt" */;
+			buildPhases = (
+				D14D9FDAAB293DD354AA562C /* Sources */,
+				C239097EC03D7CA35712CD6B /* Frameworks */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+			);
+			name = EarshotBroadcastExt;
+			packageProductDependencies = (
+				66E481B13C5277D0D67F2707 /* EarshotKit */,
+			);
+			productName = EarshotBroadcastExt;
+			productReference = 73C770F7F8ADE3C4C35AC888 /* EarshotBroadcastExt.appex */;
+			productType = "com.apple.product-type.app-extension";
+		};
+		E31CD32546C44FDD4709019C /* Earshot */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = 7F90677C9B9E9DC75FEA96C9 /* Build configuration list for PBXNativeTarget "Earshot" */;
+			buildPhases = (
+				5D13E956E409F7051DBFD895 /* Sources */,
+				ABD18C9466C9307CA598348F /* Frameworks */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+			);
+			name = Earshot;
+			packageProductDependencies = (
+				C19CDA64D2438658A89E387A /* EarshotKit */,
+			);
+			productName = Earshot;
+			productReference = D417CBEB2EF403CE505CD8E9 /* Earshot.app */;
+			productType = "com.apple.product-type.application";
+		};
+/* End PBXNativeTarget section */
+
+/* Begin PBXProject section */
+		9FB774AEE0DC1581E53209CF /* Project object */ = {
+			isa = PBXProject;
+			attributes = {
+				BuildIndependentTargetsInParallel = YES;
+				LastUpgradeCheck = 1500;
+				TargetAttributes = {
+				};
+			};
+			buildConfigurationList = 5E10F8C7203D68DB8A12B50A /* Build configuration list for PBXProject "Earshot" */;
+			developmentRegion = en;
+			hasScannedForEncodings = 0;
+			knownRegions = (
+				Base,
+				en,
+			);
+			mainGroup = 993B8D204E4E7B3167DF2E35;
+			minimizedProjectReferenceProxies = 1;
+			packageReferences = (
+				56136010461B53AE30E67109 /* XCLocalSwiftPackageReference "EarshotKit" */,
+			);
+			preferredProjectObjectVersion = 77;
+			productRefGroup = 373449AA16D97653E16A2BF2 /* Products */;
+			projectDirPath = "";
+			projectRoot = "";
+			targets = (
+				E31CD32546C44FDD4709019C /* Earshot */,
+				311CEF42A1C2B4B009D575E1 /* Earshot-iOS */,
+				AAC8C8C3C3B62495E1285530 /* EarshotBroadcastExt */,
+				9F16C8CE9DF679B00B56DF3A /* EarshotKitTests */,
+			);
+		};
+/* End PBXProject section */
+
+/* Begin PBXSourcesBuildPhase section */
+		4A622A37D34A516C5784664B /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				2B7BCFDEAE075329E156EBA2 /* EarshotApp.swift in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		5D13E956E409F7051DBFD895 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				170BBE269E7B3E1A6F9EF705 /* AppAudioPicker.swift in Sources */,
+				3B7AB92319BAAA5E2C2A2A0E /* EarshotApp.swift in Sources */,
+				DB089D1AAF8B23356E3036D6 /* FloatingPanel.swift in Sources */,
+				3FDAC70E3DDD3B60C10E5215 /* MainView.swift in Sources */,
+				943D3E0C69C8FA8CFB215314 /* RecordingViewModel.swift in Sources */,
+				D213A9DF235C9EBD583C5D71 /* ScreenCaptureManager.swift in Sources */,
+				125B98015126FED08ECFE0D7 /* SettingsView.swift in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		CBFF43054AA57166546F1B61 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				31DAE2A6E1C19CC3B6CFA022 /* AudioChunkTests.swift in Sources */,
+				2D0D25BCEF383372A09DA673 /* ExportManagerTests.swift in Sources */,
+				3848D9764E678B4A1729DB93 /* JSONExporterTests.swift in Sources */,
+				272A47C96B972567F5BF0E44 /* SRTExporterTests.swift in Sources */,
+				DFA6F11ABEAF37E28DD5F793 /* SessionTests.swift in Sources */,
+				ECC8FCCF271F3570CFEC2B97 /* SettingsTests.swift in Sources */,
+				0A0826AAD4B3FEACA0DBB764 /* TextExporterTests.swift in Sources */,
+				3E594D002A126AC792A646B2 /* TranscriptTests.swift in Sources */,
+				4AAEBBD6F5B6A6934EF009F0 /* TranscriptionEngineTests.swift in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		D14D9FDAAB293DD354AA562C /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				F9687CDCC14386AC92ACC985 /* SampleHandler.swift in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXSourcesBuildPhase section */
+
+/* Begin XCBuildConfiguration section */
+		0E956BB3C807FD8C37138DE3 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				CLANG_ANALYZER_NONNULL = YES;
+				CLANG_ANALYZER_NUMBER_OBJECT_CONVERSION = YES_AGGRESSIVE;
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++14";
+				CLANG_CXX_LIBRARY = "libc++";
+				CLANG_ENABLE_MODULES = YES;
+				CLANG_ENABLE_OBJC_ARC = YES;
+				CLANG_ENABLE_OBJC_WEAK = YES;
+				CLANG_WARN_BLOCK_CAPTURE_AUTORELEASING = YES;
+				CLANG_WARN_BOOL_CONVERSION = YES;
+				CLANG_WARN_COMMA = YES;
+				CLANG_WARN_CONSTANT_CONVERSION = YES;
+				CLANG_WARN_DEPRECATED_OBJC_IMPLEMENTATIONS = YES;
+				CLANG_WARN_DIRECT_OBJC_ISA_USAGE = YES_ERROR;
+				CLANG_WARN_DOCUMENTATION_COMMENTS = YES;
+				CLANG_WARN_EMPTY_BODY = YES;
+				CLANG_WARN_ENUM_CONVERSION = YES;
+				CLANG_WARN_INFINITE_RECURSION = YES;
+				CLANG_WARN_INT_CONVERSION = YES;
+				CLANG_WARN_NON_LITERAL_NULL_CONVERSION = YES;
+				CLANG_WARN_OBJC_IMPLICIT_RETAIN_SELF = YES;
+				CLANG_WARN_OBJC_LITERAL_CONVERSION = YES;
+				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
+				CLANG_WARN_QUOTED_INCLUDE_IN_FRAMEWORK_HEADER = YES;
+				CLANG_WARN_RANGE_LOOP_ANALYSIS = YES;
+				CLANG_WARN_STRICT_PROTOTYPES = YES;
+				CLANG_WARN_SUSPICIOUS_MOVE = YES;
+				CLANG_WARN_UNGUARDED_AVAILABILITY = YES_AGGRESSIVE;
+				CLANG_WARN_UNREACHABLE_CODE = YES;
+				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
+				COPY_PHASE_STRIP = NO;
+				DEBUG_INFORMATION_FORMAT = dwarf;
+				ENABLE_STRICT_OBJC_MSGSEND = YES;
+				ENABLE_TESTABILITY = YES;
+				GCC_C_LANGUAGE_STANDARD = gnu11;
+				GCC_DYNAMIC_NO_PIC = NO;
+				GCC_NO_COMMON_BLOCKS = YES;
+				GCC_OPTIMIZATION_LEVEL = 0;
+				GCC_PREPROCESSOR_DEFINITIONS = (
+					"$(inherited)",
+					"DEBUG=1",
+				);
+				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES_ERROR;
+				GCC_WARN_UNDECLARED_SELECTOR = YES;
+				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
+				GCC_WARN_UNUSED_FUNCTION = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
+				IPHONEOS_DEPLOYMENT_TARGET = 17.0;
+				MACOSX_DEPLOYMENT_TARGET = 14.0;
+				MTL_ENABLE_DEBUG_INFO = INCLUDE_SOURCE;
+				MTL_FAST_MATH = YES;
+				ONLY_ACTIVE_ARCH = YES;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SWIFT_ACTIVE_COMPILATION_CONDITIONS = DEBUG;
+				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
+				SWIFT_VERSION = 5.9;
+			};
+			name = Debug;
+		};
+		1010EACC05677C5E33B6E28E /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				CODE_SIGN_ENTITLEMENTS = "Earshot-macOS/Earshot.entitlements";
+				COMBINE_HIDPI_IMAGES = YES;
+				ENABLE_HARDENED_RUNTIME = YES;
+				INFOPLIST_FILE = "Earshot-macOS/Info.plist";
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/../Frameworks",
+				);
+				MACOSX_DEPLOYMENT_TARGET = 14.0;
+				PRODUCT_BUNDLE_IDENTIFIER = com.earshot.mac;
+				PRODUCT_NAME = Earshot;
+				SDKROOT = macosx;
+			};
+			name = Release;
+		};
+		2DD08D26B9FB640F4DB8464A /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				INFOPLIST_FILE = "Earshot-iOS/BroadcastExt/Info.plist";
+				IPHONEOS_DEPLOYMENT_TARGET = 17.0;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+					"@executable_path/../../Frameworks",
+				);
+				PRODUCT_BUNDLE_IDENTIFIER = com.earshot.ios.broadcast;
+				PRODUCT_NAME = EarshotBroadcast;
+				SDKROOT = iphoneos;
+				TARGETED_DEVICE_FAMILY = "1,2";
+			};
+			name = Release;
+		};
+		408A0D298E22F72FE96B9DF1 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				BUNDLE_LOADER = "$(TEST_HOST)";
+				COMBINE_HIDPI_IMAGES = YES;
+				GENERATE_INFOPLIST_FILE = YES;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/../Frameworks",
+					"@loader_path/../Frameworks",
+				);
+				PRODUCT_BUNDLE_IDENTIFIER = com.earshot.kit.tests;
+				SDKROOT = macosx;
+			};
+			name = Release;
+		};
+		442DB5E1579CF9F8F2E674FF /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				CLANG_ANALYZER_NONNULL = YES;
+				CLANG_ANALYZER_NUMBER_OBJECT_CONVERSION = YES_AGGRESSIVE;
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++14";
+				CLANG_CXX_LIBRARY = "libc++";
+				CLANG_ENABLE_MODULES = YES;
+				CLANG_ENABLE_OBJC_ARC = YES;
+				CLANG_ENABLE_OBJC_WEAK = YES;
+				CLANG_WARN_BLOCK_CAPTURE_AUTORELEASING = YES;
+				CLANG_WARN_BOOL_CONVERSION = YES;
+				CLANG_WARN_COMMA = YES;
+				CLANG_WARN_CONSTANT_CONVERSION = YES;
+				CLANG_WARN_DEPRECATED_OBJC_IMPLEMENTATIONS = YES;
+				CLANG_WARN_DIRECT_OBJC_ISA_USAGE = YES_ERROR;
+				CLANG_WARN_DOCUMENTATION_COMMENTS = YES;
+				CLANG_WARN_EMPTY_BODY = YES;
+				CLANG_WARN_ENUM_CONVERSION = YES;
+				CLANG_WARN_INFINITE_RECURSION = YES;
+				CLANG_WARN_INT_CONVERSION = YES;
+				CLANG_WARN_NON_LITERAL_NULL_CONVERSION = YES;
+				CLANG_WARN_OBJC_IMPLICIT_RETAIN_SELF = YES;
+				CLANG_WARN_OBJC_LITERAL_CONVERSION = YES;
+				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
+				CLANG_WARN_QUOTED_INCLUDE_IN_FRAMEWORK_HEADER = YES;
+				CLANG_WARN_RANGE_LOOP_ANALYSIS = YES;
+				CLANG_WARN_STRICT_PROTOTYPES = YES;
+				CLANG_WARN_SUSPICIOUS_MOVE = YES;
+				CLANG_WARN_UNGUARDED_AVAILABILITY = YES_AGGRESSIVE;
+				CLANG_WARN_UNREACHABLE_CODE = YES;
+				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
+				COPY_PHASE_STRIP = NO;
+				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
+				ENABLE_NS_ASSERTIONS = NO;
+				ENABLE_STRICT_OBJC_MSGSEND = YES;
+				GCC_C_LANGUAGE_STANDARD = gnu11;
+				GCC_NO_COMMON_BLOCKS = YES;
+				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES_ERROR;
+				GCC_WARN_UNDECLARED_SELECTOR = YES;
+				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
+				GCC_WARN_UNUSED_FUNCTION = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
+				IPHONEOS_DEPLOYMENT_TARGET = 17.0;
+				MACOSX_DEPLOYMENT_TARGET = 14.0;
+				MTL_ENABLE_DEBUG_INFO = NO;
+				MTL_FAST_MATH = YES;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SWIFT_COMPILATION_MODE = wholemodule;
+				SWIFT_OPTIMIZATION_LEVEL = "-O";
+				SWIFT_VERSION = 5.9;
+			};
+			name = Release;
+		};
+		464837D6A023B7F5F56BA6D2 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				CODE_SIGN_IDENTITY = "iPhone Developer";
+				INFOPLIST_FILE = "Earshot-iOS/Info.plist";
+				IPHONEOS_DEPLOYMENT_TARGET = 17.0;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+				);
+				PRODUCT_BUNDLE_IDENTIFIER = com.earshot.ios;
+				PRODUCT_NAME = Earshot;
+				SDKROOT = iphoneos;
+				TARGETED_DEVICE_FAMILY = "1,2";
+			};
+			name = Debug;
+		};
+		7B1D80201633625DEEC8EE62 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				BUNDLE_LOADER = "$(TEST_HOST)";
+				COMBINE_HIDPI_IMAGES = YES;
+				GENERATE_INFOPLIST_FILE = YES;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/../Frameworks",
+					"@loader_path/../Frameworks",
+				);
+				PRODUCT_BUNDLE_IDENTIFIER = com.earshot.kit.tests;
+				SDKROOT = macosx;
+			};
+			name = Debug;
+		};
+		8B4D758CE01EA240C961BC45 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				INFOPLIST_FILE = "Earshot-iOS/BroadcastExt/Info.plist";
+				IPHONEOS_DEPLOYMENT_TARGET = 17.0;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+					"@executable_path/../../Frameworks",
+				);
+				PRODUCT_BUNDLE_IDENTIFIER = com.earshot.ios.broadcast;
+				PRODUCT_NAME = EarshotBroadcast;
+				SDKROOT = iphoneos;
+				TARGETED_DEVICE_FAMILY = "1,2";
+			};
+			name = Debug;
+		};
+		987A614C5B11A6A47360C74E /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				CODE_SIGN_ENTITLEMENTS = "Earshot-macOS/Earshot.entitlements";
+				COMBINE_HIDPI_IMAGES = YES;
+				ENABLE_HARDENED_RUNTIME = YES;
+				INFOPLIST_FILE = "Earshot-macOS/Info.plist";
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/../Frameworks",
+				);
+				MACOSX_DEPLOYMENT_TARGET = 14.0;
+				PRODUCT_BUNDLE_IDENTIFIER = com.earshot.mac;
+				PRODUCT_NAME = Earshot;
+				SDKROOT = macosx;
+			};
+			name = Debug;
+		};
+		FB29441C4B25CDD54F7E2D65 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				CODE_SIGN_IDENTITY = "iPhone Developer";
+				INFOPLIST_FILE = "Earshot-iOS/Info.plist";
+				IPHONEOS_DEPLOYMENT_TARGET = 17.0;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+				);
+				PRODUCT_BUNDLE_IDENTIFIER = com.earshot.ios;
+				PRODUCT_NAME = Earshot;
+				SDKROOT = iphoneos;
+				TARGETED_DEVICE_FAMILY = "1,2";
+			};
+			name = Release;
+		};
+/* End XCBuildConfiguration section */
+
+/* Begin XCConfigurationList section */
+		48ECB78E744860B3395DEAAA /* Build configuration list for PBXNativeTarget "EarshotKitTests" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				7B1D80201633625DEEC8EE62 /* Debug */,
+				408A0D298E22F72FE96B9DF1 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Debug;
+		};
+		5E10F8C7203D68DB8A12B50A /* Build configuration list for PBXProject "Earshot" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				0E956BB3C807FD8C37138DE3 /* Debug */,
+				442DB5E1579CF9F8F2E674FF /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Debug;
+		};
+		7F90677C9B9E9DC75FEA96C9 /* Build configuration list for PBXNativeTarget "Earshot" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				987A614C5B11A6A47360C74E /* Debug */,
+				1010EACC05677C5E33B6E28E /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Debug;
+		};
+		B53AA22673FD3C3A83719A24 /* Build configuration list for PBXNativeTarget "EarshotBroadcastExt" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				8B4D758CE01EA240C961BC45 /* Debug */,
+				2DD08D26B9FB640F4DB8464A /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Debug;
+		};
+		F7503593A283E0F225F09C9D /* Build configuration list for PBXNativeTarget "Earshot-iOS" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				464837D6A023B7F5F56BA6D2 /* Debug */,
+				FB29441C4B25CDD54F7E2D65 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Debug;
+		};
+/* End XCConfigurationList section */
+
+/* Begin XCLocalSwiftPackageReference section */
+		56136010461B53AE30E67109 /* XCLocalSwiftPackageReference "EarshotKit" */ = {
+			isa = XCLocalSwiftPackageReference;
+			relativePath = EarshotKit;
+		};
+/* End XCLocalSwiftPackageReference section */
+
+/* Begin XCSwiftPackageProductDependency section */
+		219F4094F1E016E39E2A1A01 /* EarshotKit */ = {
+			isa = XCSwiftPackageProductDependency;
+			productName = EarshotKit;
+		};
+		3700E457D9CC598A6F9C5498 /* EarshotKit */ = {
+			isa = XCSwiftPackageProductDependency;
+			productName = EarshotKit;
+		};
+		66E481B13C5277D0D67F2707 /* EarshotKit */ = {
+			isa = XCSwiftPackageProductDependency;
+			productName = EarshotKit;
+		};
+		C19CDA64D2438658A89E387A /* EarshotKit */ = {
+			isa = XCSwiftPackageProductDependency;
+			productName = EarshotKit;
+		};
+/* End XCSwiftPackageProductDependency section */
+	};
+	rootObject = 9FB774AEE0DC1581E53209CF /* Project object */;
+}

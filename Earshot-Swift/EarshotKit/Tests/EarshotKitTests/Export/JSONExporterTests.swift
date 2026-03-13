@@ -17,7 +17,9 @@ final class JSONExporterTests: XCTestCase {
         XCTAssertEqual(url.pathExtension, "json")
 
         let data = try Data(contentsOf: url)
-        let decoded = try JSONDecoder().decode(Transcript.self, from: data)
+        let decoder = JSONDecoder()
+        decoder.dateDecodingStrategy = .iso8601
+        let decoded = try decoder.decode(Transcript.self, from: data)
         XCTAssertEqual(decoded.segments.count, 2)
         XCTAssertEqual(decoded.segments[0].speaker, "Alice")
     }

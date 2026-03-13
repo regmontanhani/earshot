@@ -1,5 +1,4 @@
 // NOTE: This file belongs to the Earshot-macOS target.
-// It imports EarshotKit when built via Xcode project.
 // AudioExtensions (rmsLevel, toAudioBuffer) come from EarshotKit.
 
 #if os(macOS)
@@ -7,6 +6,7 @@ import ScreenCaptureKit
 import AVFoundation
 import CoreMedia
 import Combine
+import EarshotKit
 
 @MainActor
 final class ScreenCaptureManager: NSObject, ObservableObject {
@@ -18,8 +18,9 @@ final class ScreenCaptureManager: NSObject, ObservableObject {
     private var stream: SCStream?
     private var audioEngine: AVAudioEngine?
 
-    var onAudioLevel: ((Float) -> Void)?
-    var onAudioBuffer: ((AVAudioPCMBuffer) -> Void)?
+    // Use nonisolated(unsafe) so the SCStreamOutput callback can access these
+    nonisolated(unsafe) var onAudioLevel: ((Float) -> Void)?
+    nonisolated(unsafe) var onAudioBuffer: ((AVAudioPCMBuffer) -> Void)?
 
     func refreshApps() async throws {
         let content = try await SCShareableContent.excludingDesktopWindows(
@@ -52,7 +53,7 @@ final class ScreenCaptureManager: NSObject, ObservableObject {
         } else if let app = selectedApp {
             filter = SCContentFilter(
                 display: display,
-                includingApplications: [app],
+                including: [app],
                 exceptingWindows: []
             )
         } else {
@@ -103,7 +104,6 @@ final class ScreenCaptureManager: NSObject, ObservableObject {
 extension ScreenCaptureManager: SCStreamOutput {
     nonisolated func stream(_ stream: SCStream, didOutputSampleBuffer sampleBuffer: CMSampleBuffer, of type: SCStreamOutputType) {
         guard type == .audio else { return }
-        // TODO: Import EarshotKit for toAudioBuffer() and rmsLevel() when Xcode project is set up
         guard let buffer = sampleBuffer.toAudioBuffer() else { return }
         onAudioBuffer?(buffer)
         let level = buffer.rmsLevel()

@@ -1,0 +1,136 @@
+name: Earshot
+options:
+  bundleIdPrefix: com.earshot
+  deploymentTarget:
+    macOS: "14.0"
+    iOS: "17.0"
+  xcodeVersion: "15.0"
+  createIntermediateGroups: true
+  groupSortPosition: top
+
+packages:
+  EarshotKit:
+    path: EarshotKit
+
+settings:
+  base:
+    SWIFT_VERSION: "5.9"
+    MACOSX_DEPLOYMENT_TARGET: "14.0"
+    IPHONEOS_DEPLOYMENT_TARGET: "17.0"
+
+targets:
+  Earshot:
+    type: application
+    platform: macOS
+    deploymentTarget: "14.0"
+    sources:
+      - path: Earshot-macOS
+        excludes:
+          - "**/.gitkeep"
+    dependencies:
+      - package: EarshotKit
+    settings:
+      base:
+        PRODUCT_BUNDLE_IDENTIFIER: com.earshot.mac
+        PRODUCT_NAME: Earshot
+        INFOPLIST_FILE: Earshot-macOS/Info.plist
+        CODE_SIGN_ENTITLEMENTS: Earshot-macOS/Earshot.entitlements
+        ASSETCATALOG_COMPILER_APPICON_NAME: AppIcon
+        COMBINE_HIDPI_IMAGES: true
+        LD_RUNPATH_SEARCH_PATHS:
+          - $(inherited)
+          - "@executable_path/../Frameworks"
+        ENABLE_HARDENED_RUNTIME: true
+    entitlements:
+      path: Earshot-macOS/Earshot.entitlements
+      properties:
+        com.apple.security.app-sandbox: false
+        com.apple.security.device.audio-input: true
+
+  Earshot-iOS:
+    type: application
+    platform: iOS
+    deploymentTarget: "17.0"
+    sources:
+      - path: Earshot-iOS
+        excludes:
+          - "BroadcastExt/**"
+          - "**/.gitkeep"
+    dependencies:
+      - package: EarshotKit
+    settings:
+      base:
+        PRODUCT_BUNDLE_IDENTIFIER: com.earshot.ios
+        PRODUCT_NAME: Earshot
+        INFOPLIST_FILE: Earshot-iOS/Info.plist
+        ASSETCATALOG_COMPILER_APPICON_NAME: AppIcon
+        LD_RUNPATH_SEARCH_PATHS:
+          - $(inherited)
+          - "@executable_path/Frameworks"
+    info:
+      path: Earshot-iOS/Info.plist
+      properties:
+        UILaunchScreen: {}
+        NSMicrophoneUsageDescription: "Earshot needs microphone access to transcribe audio"
+
+  EarshotBroadcastExt:
+    type: app-extension
+    platform: iOS
+    deploymentTarget: "17.0"
+    sources:
+      - path: Earshot-iOS/BroadcastExt
+        excludes:
+          - "**/.gitkeep"
+    dependencies:
+      - package: EarshotKit
+    settings:
+      base:
+        PRODUCT_BUNDLE_IDENTIFIER: com.earshot.ios.broadcast
+        PRODUCT_NAME: EarshotBroadcast
+        INFOPLIST_FILE: Earshot-iOS/BroadcastExt/Info.plist
+        LD_RUNPATH_SEARCH_PATHS:
+          - $(inherited)
+          - "@executable_path/Frameworks"
+          - "@executable_path/../../Frameworks"
+    info:
+      path: Earshot-iOS/BroadcastExt/Info.plist
+      properties:
+        NSExtension:
+          NSExtensionPointIdentifier: com.apple.broadcast-services-upload
+          NSExtensionPrincipalClass: "$(PRODUCT_MODULE_NAME).SampleHandler"
+
+  EarshotKitTests:
+    type: bundle.unit-test
+    platform: macOS
+    sources:
+      - path: EarshotKit/Tests/EarshotKitTests
+        excludes:
+          - "**/.gitkeep"
+    dependencies:
+      - package: EarshotKit
+    settings:
+      base:
+        PRODUCT_BUNDLE_IDENTIFIER: com.earshot.kit.tests
+        GENERATE_INFOPLIST_FILE: true
+
+schemes:
+  Earshot:
+    build:
+      targets:
+        Earshot: all
+    run:
+      config: Debug
+    test:
+      config: Debug
+      targets:
+        - EarshotKitTests
+
+  Earshot-iOS:
+    build:
+      targets:
+        Earshot-iOS: all
+        EarshotBroadcastExt: all
+    run:
+      config: Debug
+    test:
+      config: Debug
