@@ -343,4 +343,9 @@ class SettingsDialog(QDialog):
             self.settings.pop("openai_api_key", None)
 
         self.on_save(self.settings)
+
+        # Restart monitoring if device changed
+        if hasattr(self.parent(), "_restart_monitoring"):
+            self.parent()._restart_monitoring()
+
         self.accept()

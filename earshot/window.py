@@ -46,6 +46,8 @@ class EarshotWindow(QMainWindow):
         super().__init__()
         self.settings = load_settings()
         self._is_recording = False
+        self._is_monitoring = False  # Preview mode without recording
+        self._monitor_capture: AudioCapture | None = None
         self._recording_start: datetime | None = None
         self._audio_capture: AudioCapture | None = None
         self._current_transcript: dict | None = None
@@ -68,6 +70,9 @@ class EarshotWindow(QMainWindow):
 
         # Start watching for new sessions
         self._history.start_watching()
+
+        # Start audio monitoring for waveform preview
+        self._start_monitoring()
 
     def _setup_window(self) -> None:
         """Configure window properties."""
@@ -227,6 +232,49 @@ class EarshotWindow(QMainWindow):
         else:
             self.waveform.set_accent_color("#4a9eff")
 
+    # Audio monitoring (preview without recording)
+
+    def _start_monitoring(self) -> None:
+        """Start audio monitoring to show waveform preview."""
+        if self._is_monitoring or self._is_recording:
+            return
+
+        self._is_monitoring = True
+        device_name = self.settings.get("audio_device", "BlackHole 2ch")
+
+        try:
+            self._monitor_capture = AudioCapture(
+                device_name=device_name,
+                on_audio_level=self._on_monitor_level,
+                save_chunks=False,  # Don't save audio, just monitor
+            )
+            self._monitor_capture.start()
+            self.waveform.set_recording(True)  # Enable waveform animation
+        except Exception:
+            # Silently fail - monitoring is optional
+            self._is_monitoring = False
+
+    def _stop_monitoring(self) -> None:
+        """Stop audio monitoring."""
+        if not self._is_monitoring:
+            return
+
+        self._is_monitoring = False
+        if self._monitor_capture:
+            self._monitor_capture.stop()
+            self._monitor_capture = None
+
+    def _on_monitor_level(self, level: float) -> None:
+        """Handle audio level from monitoring (not recording)."""
+        if not self._is_recording:  # Only show if not recording
+            self.waveform.push_level(level)
+
+    def _restart_monitoring(self) -> None:
+        """Restart monitoring with current device settings."""
+        self._stop_monitoring()
+        if not self._is_recording:
+            self._start_monitoring()
+
     # Recording controls
 
     def _toggle_recording(self) -> None:
@@ -238,6 +286,9 @@ class EarshotWindow(QMainWindow):
 
     def _start_recording(self) -> None:
         """Start audio recording."""
+        # Stop monitoring first
+        self._stop_monitoring()
+
         self._is_recording = True
         self._recording_start = datetime.now()
         self._current_transcript = None
@@ -279,11 +330,11 @@ class EarshotWindow(QMainWindow):
         self.record_btn.style().unpolish(self.record_btn)
         self.record_btn.style().polish(self.record_btn)
         self.status_label.setText("⏳ Transcribing...")
-        self.waveform.set_recording(False)
 
         # Stop audio capture and get chunks
         if self._audio_capture:
             chunks = self._audio_capture.stop()
+            self._audio_capture = None
 
             # Transcribe in background
             thread = threading.Thread(
@@ -292,6 +343,9 @@ class EarshotWindow(QMainWindow):
                 daemon=True,
             )
             thread.start()
+
+        # Restart monitoring for waveform preview
+        self._start_monitoring()
 
     def _transcribe_recording(self, chunks: list[Path]) -> None:
         """Transcribe recorded audio (runs in background thread)."""

@@ -28,6 +28,7 @@ class AudioCapture:
         on_chunk_ready: Callable[[Path], None] | None = None,
         on_silence_timeout: Callable[[], None] | None = None,
         on_audio_level: Callable[[float], None] | None = None,
+        save_chunks: bool = True,
     ):
         """
         Initialize audio capture.
@@ -39,6 +40,7 @@ class AudioCapture:
             on_chunk_ready: Callback when a chunk is ready for processing
             on_silence_timeout: Callback when silence timeout is reached
             on_audio_level: Callback with current audio level (0.0-1.0)
+            save_chunks: If False, only monitors audio levels without saving
         """
         self.device_name = device_name
         self.chunk_duration = chunk_duration
@@ -46,6 +48,7 @@ class AudioCapture:
         self.on_chunk_ready = on_chunk_ready
         self.on_silence_timeout = on_silence_timeout
         self.on_audio_level = on_audio_level
+        self.save_chunks = save_chunks
 
         self.audio = pyaudio.PyAudio()
         self.stream = None
@@ -111,7 +114,8 @@ class AudioCapture:
         if device_index is None:
             return False
 
-        self.temp_dir = tempfile.mkdtemp(prefix="whisperx_")
+        if self.save_chunks:
+            self.temp_dir = tempfile.mkdtemp(prefix="whisperx_")
         self.chunks = []
         self.recording = True
         self.last_sound_time = time.time()
@@ -161,8 +165,11 @@ class AudioCapture:
             while self.recording:
                 try:
                     data = self.stream.read(self.CHUNK_SIZE, exception_on_overflow=False)
-                    frames.append(data)
                     samples_recorded += self.CHUNK_SIZE
+
+                    # Only store frames if we're saving chunks
+                    if self.save_chunks:
+                        frames.append(data)
 
                     # Check for silence and update level
                     audio_data = np.frombuffer(data, dtype=np.int16)
@@ -184,8 +191,8 @@ class AudioCapture:
                             self.on_silence_timeout()
                         break
 
-                    # Save chunk when duration reached
-                    if samples_recorded >= chunk_samples:
+                    # Save chunk when duration reached (only if saving)
+                    if self.save_chunks and samples_recorded >= chunk_samples:
                         chunk_path = self._save_chunk(frames, chunk_index)
                         self.chunks.append(chunk_path)
 
@@ -199,8 +206,8 @@ class AudioCapture:
                 except OSError:
                     continue
 
-            # Save remaining frames
-            if frames:
+            # Save remaining frames (only if saving)
+            if self.save_chunks and frames:
                 chunk_path = self._save_chunk(frames, chunk_index)
                 self.chunks.append(chunk_path)
 
