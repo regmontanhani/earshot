@@ -1,24 +1,35 @@
-# Earshot
+<picture>
+  <source media="(prefers-color-scheme: dark)" srcset="resources/banner-dark.png">
+  <source media="(prefers-color-scheme: light)" srcset="resources/banner-light.png">
+  <img alt="Earshot - Local Audio Transcription for macOS" src="resources/banner-dark.png" width="100%">
+</picture>
 
-A macOS menu bar app for audio transcription. Capture live meetings locally, transcribe audio files via OpenAI.
+<p align="center">
+  <strong>Record meetings. Get transcripts. All on your Mac.</strong>
+</p>
 
-![Menu Bar](https://img.shields.io/badge/macOS-Menu%20Bar%20App-blue)
-![Apple Silicon](https://img.shields.io/badge/Apple%20Silicon-Optimized-green)
+<p align="center">
+  <a href="#-features"><img src="https://img.shields.io/badge/Platform-macOS-blue?style=flat-square" alt="macOS"></a>
+  <a href="#-requirements"><img src="https://img.shields.io/badge/Apple%20Silicon-Optimized-green?style=flat-square" alt="Apple Silicon"></a>
+  <a href="LICENSE"><img src="https://img.shields.io/badge/License-MIT-yellow?style=flat-square" alt="MIT License"></a>
+  <a href="#-quick-start"><img src="https://img.shields.io/badge/Setup-One%20Command-orange?style=flat-square" alt="One Command Setup"></a>
+</p>
 
-## Features
+---
+
+## ✨ Features
 
 | Feature | Description |
 |---------|-------------|
-| 🎙️ **Live Meeting Transcription** | Capture system audio in real-time from any app (Zoom, Teams, Meet, etc.) - runs locally |
-| 📁 **File Transcription** | Transcribe audio/video files via OpenAI Whisper API (fast, handles large files) |
-| 🔴 **Live Audio Monitor** | Visual feedback in menu bar showing audio levels while recording |
-| 🤖 **Speaker Diarization** | Automatic speaker identification using local Ollama LLM |
-| 📝 **Multiple Formats** | Outputs JSON, TXT, SRT, VTT, TSV |
-| ⏹️ **Auto-Stop** | Configurable auto-stop after silence (or disable for manual control) |
+| 🎙️ **Live Meeting Capture** | Record system audio from Zoom, Teams, Meet - transcribe locally |
+| 📁 **File Transcription** | Drag-and-drop audio/video files for instant transcription |
+| 🗣️ **Speaker Diarization** | Automatic speaker identification using local AI |
+| 🌊 **Live Waveform** | Visual feedback showing audio levels while recording |
+| 🎨 **Dark & Light Themes** | Modern floating window with customizable appearance |
+| 📜 **Session History** | Browse and search past transcriptions |
+| 🔒 **100% Local** | Audio never leaves your Mac - privacy first |
 
-## Quick Start
-
-### One-Command Setup
+## 🚀 Quick Start
 
 ```bash
 git clone https://github.com/regmontanhani/earshot.git
@@ -26,290 +37,155 @@ cd earshot
 ./setup.sh
 ```
 
-The setup script will:
-- Install all dependencies (Homebrew, BlackHole, Python packages, Ollama)
-- Pull the llama3.2 model for speaker identification
-- Guide you through audio device configuration
-- Optionally configure auto-start on login
+That's it. The setup script:
+- Installs dependencies (BlackHole, Ollama, Python packages)
+- Guides you through audio device configuration
+- Pulls the local AI model for speaker identification
 
-### OpenAI API Key (for file transcription)
-
-File transcription uses the OpenAI Whisper API. Add your key to a `.env` file:
+Then launch:
 
 ```bash
-echo "OPENAI_API_KEY=your-key-here" > .env
+./run_window.sh
 ```
 
-Or set it as an environment variable. Without an API key, file transcription falls back to local processing (slower, uses more memory).
+## 📖 How It Works
 
-### Manual Installation
+<table>
+<tr>
+<td width="80" align="center">
 
-<details>
-<summary>Click to expand manual installation steps</summary>
+**1️⃣**
 
-#### 1. System Dependencies
+</td>
+<td>
 
-```bash
-# Install Homebrew (if not installed)
-/bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
+**Configure Audio**
 
-# Install required packages
-brew install blackhole-2ch portaudio ffmpeg
+Create a Multi-Output Device in Audio MIDI Setup that routes sound to both your speakers AND BlackHole for capture.
 
-# Restart Core Audio to detect BlackHole
-sudo killall coreaudiod
-```
+</td>
+</tr>
+<tr>
+<td align="center">
 
-#### 2. Python Dependencies
+**2️⃣**
 
-```bash
-pip3 install rumps mlx-whisper pyaudio soundfile numpy
-```
+</td>
+<td>
 
-#### 3. Audio Device Setup
+**Record**
 
-For live meeting transcription, you need to route system audio through BlackHole:
+Click Record in the floating window. The waveform shows live audio levels. Your meeting continues normally.
 
-1. Open **Audio MIDI Setup** (Spotlight → "Audio MIDI Setup")
-2. Click **+** at bottom-left → **Create Multi-Output Device**
-3. Check both:
-   - ☑️ **BlackHole 2ch**
-   - ☑️ **Your speakers/headphones**
-4. Double-click "Multi-Output Device" to rename it → **Meeting Audio**
+</td>
+</tr>
+<tr>
+<td align="center">
 
-This creates a virtual device that sends audio to both your speakers AND BlackHole for recording.
+**3️⃣**
 
-#### 4. Ollama for Speaker Identification
+</td>
+<td>
 
-```bash
-brew install ollama
-ollama pull llama3.2
-```
+**Transcribe**
 
-</details>
+Click Stop. Earshot transcribes using MLX-Whisper (optimized for Apple Silicon), then identifies speakers with local Ollama.
 
-## Usage
+</td>
+</tr>
+<tr>
+<td align="center">
 
-### Start the App
+**4️⃣**
 
-```bash
-./run_app.sh
-```
+</td>
+<td>
 
-A **🎙️** icon appears in your menu bar.
+**Review**
 
-### Menu Options
+The transcript appears with speaker labels. Browse past sessions with the ◀ ▶ buttons. Open files in any format you need.
 
-| Option | Description |
-|--------|-------------|
-| **Start Live Transcription** | Begin capturing system audio |
-| **Transcribe File...** | Select an audio/video file to transcribe |
-| **Open Output Folder** | View saved transcripts |
-| **Settings → Model Size** | Choose Whisper model (tiny → large-v3) |
-| **Settings → Audio Input** | Select audio capture device |
-| **Quit** | Stop the app |
+</td>
+</tr>
+</table>
 
-### Live Meeting Transcription
+## ⚙️ Settings
 
-1. **Before the meeting:**
-   - Set Mac audio output to **Meeting Audio** (System Settings → Sound → Output)
+Open settings with the ⚙️ button or <kbd>Cmd</kbd>+<kbd>,</kbd>
 
-2. **During the meeting:**
-   - Click **🎙️ → Start Live Transcription**
-   - Icon changes to **🔴** with animated audio level bars
-   - Continue your meeting normally - you'll hear audio through your speakers
+| Setting | Options |
+|---------|---------|
+| **Output Directory** | Where transcripts are saved (default: `~/Documents/Earshot`) |
+| **Output Formats** | JSON, TXT, SRT, VTT, TSV |
+| **Model Size** | tiny → turbo (larger = more accurate, slower) |
+| **Theme** | Dark or Light |
+| **Opacity** | 50% - 100% window transparency |
+| **Always on Top** | Keep window above other apps |
+| **OpenAI API Key** | Optional - for cloud transcription |
 
-3. **After the meeting:**
-   - Click **🔴 → Stop Recording**
-   - Transcription runs automatically
-   - Files saved to `~/Documents/Earshot/`
+## ⌨️ Keyboard Shortcuts
 
-### File Transcription
+| Shortcut | Action |
+|----------|--------|
+| <kbd>Space</kbd> | Start/Stop recording |
+| <kbd>←</kbd> / <kbd>→</kbd> | Navigate session history |
+| <kbd>Cmd</kbd>+<kbd>,</kbd> | Open settings |
+| <kbd>Cmd</kbd>+<kbd>Q</kbd> | Quit |
 
-1. Click **🎙️ → Transcribe File...**
-2. Select any audio or video file
-3. Wait for transcription (uses OpenAI API - fast even for large files)
-4. Output files saved next to the original file
+## 📝 Output Formats
 
-> **Note:** Requires `OPENAI_API_KEY` in `.env` or environment. Falls back to local if not set.
+| Format | Use Case |
+|--------|----------|
+| **JSON** | Full data with timestamps, segments, speakers |
+| **TXT** | Plain text for reading or sharing |
+| **SRT** | Subtitles for video editors |
+| **VTT** | Web subtitles for browsers |
+| **TSV** | Import into spreadsheets |
 
-## Output Formats
+## 🔧 Requirements
 
-All transcriptions generate these files:
+| | Minimum | Recommended |
+|---|---------|-------------|
+| **macOS** | 12.0 Monterey | 14.0+ Sonoma |
+| **Chip** | Intel or Apple Silicon | Apple Silicon (M1+) |
+| **RAM** | 8 GB | 16 GB |
+| **Disk** | 5 GB | 10 GB |
 
-| Format | Extension | Description |
-|--------|-----------|-------------|
-| **JSON** | `.json` | Full transcript with timestamps, segments, metadata |
-| **Text** | `.txt` | Plain text transcript |
-| **SRT** | `.srt` | SubRip subtitles (for video players) |
-| **VTT** | `.vtt` | WebVTT subtitles (for web/browsers) |
-| **TSV** | `.tsv` | Tab-separated values (for spreadsheets) |
-
-## How It Works
-
-| Mode | Engine | Why |
-|------|--------|-----|
-| **Live Recording** | Local MLX-Whisper | Audio is chunked (30s), low memory usage |
-| **File Transcription** | OpenAI API | Fast, handles large files without memory issues |
-| **Speaker ID** | Local Ollama | Privacy - speaker names stay on your machine |
-
-## Models
-
-For **live recording**, select model in **Settings → Model Size**:
-
-| Model | Download Size | RAM Usage | Speed | Quality |
-|-------|--------------|-----------|-------|---------|
-| `tiny` | ~75 MB | ~1 GB | ⚡⚡⚡⚡⚡ | ★☆☆☆☆ |
-| `base` | ~140 MB | ~1 GB | ⚡⚡⚡⚡ | ★★☆☆☆ |
-| `small` | ~460 MB | ~2 GB | ⚡⚡⚡ | ★★★☆☆ |
-| `medium` | ~1.5 GB | ~5 GB | ⚡⚡ | ★★★★☆ |
-| `large-v3` | ~3 GB | ~10 GB | ⚡ | ★★★★★ |
-
-**Recommendation:** Use `large-v3` for best quality on Apple Silicon Macs.
-
-Models download automatically on first use.
-
-## Configuration
-
-Settings are stored in `~/.config/earshot/settings.json`:
-
-```json
-{
-  "model_size": "large-v3",
-  "output_dir": "~/Documents/Earshot",
-  "audio_device": "BlackHole 2ch",
-  "auto_stop_enabled": true,
-  "silence_timeout": 60,
-  "chunk_duration": 30,
-  "output_formats": ["json", "txt", "srt", "vtt", "tsv"]
-}
-```
-
-OpenAI API key can be set in `.env` file or as `OPENAI_API_KEY` environment variable.
-
-## Auto-Start on Login
-
-```bash
-# Enable
-launchctl load ~/Library/LaunchAgents/com.earshot.app.plist
-
-# Disable
-launchctl unload ~/Library/LaunchAgents/com.earshot.app.plist
-```
-
-## CLI Tool
-
-For command-line transcription:
-
-```bash
-# Basic usage
-./earshot_run /path/to/audio.m4a
-
-# Specify model
-./earshot_run /path/to/video.mp4 --model small
-
-# Manual speaker names
-./earshot_run /path/to/call.wav --speakers "Alice,Bob"
-
-# See all options
-./earshot_run --help
-```
-
-**Options:**
-| Option | Description |
-|--------|-------------|
-| `--model MODEL` | Whisper model (tiny, base, small, medium, large-v3). Default: large-v3 |
-| `--speakers NAMES` | Comma-separated speaker names |
-| `--help` | Show help message |
-
-You can also set `EARSHOT_MODEL` environment variable to change the default model.
-
-## Troubleshooting
-
-### BlackHole not appearing as audio device
-
-```bash
-sudo killall coreaudiod
-```
-
-If still not visible, reboot your Mac.
-
-### No audio being captured
-
-1. Check System Settings → Sound → Output is set to "Meeting Audio"
-2. Check Earshot Settings → Audio Input is set to "BlackHole 2ch"
-3. Make sure the meeting app is playing audio
-
-### Transcription quality is poor
-
-- Switch to a larger model (Settings → Model Size → `large-v3`)
-- Ensure good audio quality in the meeting
-- Reduce background noise
-
-### App not appearing in menu bar
-
-The app may be running as a Dock app instead. Restart the app:
-
-```bash
-pkill -f "earshot.app"
-./run_app.sh
-```
-
-### First transcription is slow
-
-The first run downloads the Whisper model (~3GB for large-v3). Subsequent runs are fast.
-
-## Requirements
-
-| Requirement | Minimum | Recommended |
-|-------------|---------|-------------|
-| **macOS** | 12.0 (Monterey) | 13.0+ (Ventura/Sonoma) |
-| **Chip** | Any Mac | Apple Silicon (M1/M2/M3/M4) |
-| **RAM** | 8 GB | 16 GB+ |
-| **Python** | 3.10 | 3.11+ |
-| **Disk** | 5 GB free | 10 GB free |
-
-## Dependencies
-
-### System (via Homebrew)
-
-- `blackhole-2ch` - Virtual audio device for capturing system audio
-- `portaudio` - Audio I/O library (required by PyAudio)
-- `ffmpeg` - Audio/video processing
-
-### Python
-
-- `rumps` - macOS menu bar framework
-- `mlx-whisper` - MLX-optimized Whisper for Apple Silicon (live recording)
-- `openai` - OpenAI API client (file transcription)
-- `pyaudio` - Audio capture
-- `soundfile` - Audio file handling
-- `numpy` - Numerical processing
-
-### Required
-
-- `ollama` + `llama3.2` - Local LLM for speaker identification
-
-## Project Structure
+## 🏗️ Architecture
 
 ```
 earshot/
-├── earshot/
-│   ├── __init__.py
-│   ├── app.py              # Menu bar application
-│   ├── transcriber.py      # MLX-Whisper wrapper
-│   ├── audio_capture.py    # Live audio recording
-│   ├── file_processor.py   # Audio/video file handling
-│   ├── output_writer.py    # Generate output formats
-│   ├── diarization.py      # Speaker identification (Ollama)
-│   └── config.py           # Settings management
-├── setup.sh                # One-command setup script
-├── run_app.sh              # Run the menu bar app
-├── earshot_run             # CLI tool
-├── requirements.txt        # Python dependencies
-└── README.md
+├── window.py           # PySide6 floating window
+├── widgets/            # UI components
+│   ├── waveform.py     # Live audio visualization
+│   ├── transcript.py   # Transcript viewer
+│   └── settings.py     # Settings dialog
+├── history.py          # Session history manager
+├── themes.py           # Dark/Light stylesheets
+├── audio_capture.py    # PyAudio + BlackHole
+├── transcriber.py      # MLX-Whisper + OpenAI
+├── diarization.py      # Ollama speaker ID
+├── output_writer.py    # File output
+└── config.py           # Settings
 ```
 
-## License
+## 🔒 Privacy
 
-MIT
+- **Audio stays local** - Transcription runs on your Mac using MLX-Whisper
+- **Speaker ID is local** - Ollama runs entirely offline
+- **No telemetry** - No data collection, no analytics
+- **Optional cloud** - OpenAI API only if you configure it
+
+## 🤝 Contributing
+
+Contributions welcome! See [CONTRIBUTING.md](CONTRIBUTING.md) for guidelines.
+
+## 📄 License
+
+MIT - see [LICENSE](LICENSE) for details.
+
+---
+
+<p align="center">
+  Made with ❤️ for people who take too many meeting notes
+</p>
