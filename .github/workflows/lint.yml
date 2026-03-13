@@ -2,10 +2,6 @@ name: Lint
 
 on:
   pull_request:
-    paths:
-      - '**.py'
-      - 'earshot_run'
-      - '.github/workflows/lint.yml'
 
 jobs:
   lint:
