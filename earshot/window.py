@@ -441,6 +441,8 @@ class EarshotWindow(QMainWindow):
             on_theme_change=self._on_theme_preview,
             parent=self,
         )
+        dialog.raise_()
+        dialog.activateWindow()
         dialog.exec()
 
     def _on_settings_saved(self, new_settings: dict) -> None:
