@@ -2,12 +2,11 @@
 
 from __future__ import annotations
 
+import platform
 from pathlib import Path
 from typing import TYPE_CHECKING
 
-import platform
-
-from PySide6.QtCore import Qt
+from PySide6.QtCore import Qt, QTimer
 from PySide6.QtWidgets import (
     QCheckBox,
     QComboBox,
@@ -47,7 +46,7 @@ class SettingsDialog(QDialog):
 
     def _setup_window(self) -> None:
         """Configure dialog properties."""
-        self.setWindowTitle("Settings")
+        self.setWindowTitle("Earshot Settings")
         self.setMinimumWidth(440)
         self.setWindowFlags(
             self.windowFlags() | Qt.WindowType.WindowStaysOnTopHint
@@ -58,14 +57,19 @@ class SettingsDialog(QDialog):
         """Force window to front on macOS using native Cocoa API."""
         super().showEvent(event)
         if platform.system() == "Darwin":
-            try:
-                from AppKit import NSApp, NSFloatingWindowLevel
-                for window in NSApp.windows():
-                    if self.windowTitle() in (window.title() or ""):
-                        window.setLevel_(NSFloatingWindowLevel + 1)
-                        break
-            except ImportError:
-                pass
+            QTimer.singleShot(50, self._raise_native)
+
+    def _raise_native(self) -> None:
+        """Raise to front using macOS NSWindow API."""
+        try:
+            from AppKit import NSApp, NSFloatingWindowLevel
+            for nswin in NSApp.windows():
+                if nswin.title() == self.windowTitle():
+                    nswin.setLevel_(NSFloatingWindowLevel + 1)
+                    nswin.orderFrontRegardless()
+                    return
+        except ImportError:
+            pass
 
     def _setup_ui(self) -> None:
         """Build the settings UI."""

@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import platform
 import subprocess
 import sys
 import threading
@@ -32,6 +33,22 @@ from earshot.themes import get_theme
 from earshot.transcriber import OpenAITranscriber, Transcriber, get_openai_api_key
 from earshot.widgets import TranscriptViewer, WaveformWidget
 from earshot.widgets.settings import SettingsDialog
+
+
+def _set_native_always_on_top(qt_window, on: bool = True) -> None:
+    """Set always-on-top using native macOS Cocoa API."""
+    if platform.system() != "Darwin":
+        return
+    try:
+        from AppKit import NSApp, NSFloatingWindowLevel, NSNormalWindowLevel
+        title = qt_window.windowTitle()
+        level = NSFloatingWindowLevel if on else NSNormalWindowLevel
+        for nswin in NSApp.windows():
+            if nswin.title() == title:
+                nswin.setLevel_(level)
+                return
+    except ImportError:
+        pass
 
 
 class EarshotWindow(QMainWindow):
@@ -80,7 +97,7 @@ class EarshotWindow(QMainWindow):
         self.setMinimumSize(340, 500)
         self.resize(360, 600)
 
-        # Always on top
+        # Always on top via Qt hint (baseline)
         if self.settings.get("always_on_top", True):
             self.setWindowFlags(self.windowFlags() | Qt.WindowType.WindowStaysOnTopHint)
 
@@ -89,9 +106,9 @@ class EarshotWindow(QMainWindow):
         if geometry:
             self.restoreGeometry(bytes.fromhex(geometry))
 
-        # Window opacity
-        opacity = self.settings.get("opacity", 0.95)
-        self.setWindowOpacity(opacity)
+        # Apply native always-on-top after window is fully shown
+        if self.settings.get("always_on_top", True):
+            QTimer.singleShot(100, lambda: _set_native_always_on_top(self, True))
 
     def _setup_ui(self) -> None:
         """Build the UI layout."""
@@ -451,12 +468,14 @@ class EarshotWindow(QMainWindow):
         save_settings(self.settings)
         self._apply_theme()
 
-        # Update always-on-top
-        if self.settings.get("always_on_top", True):
+        # Update always-on-top via native Cocoa API
+        on_top = self.settings.get("always_on_top", True)
+        if on_top:
             self.setWindowFlags(self.windowFlags() | Qt.WindowType.WindowStaysOnTopHint)
         else:
             self.setWindowFlags(self.windowFlags() & ~Qt.WindowType.WindowStaysOnTopHint)
-        self.show()  # Required after changing window flags
+        self.show()
+        QTimer.singleShot(100, lambda: _set_native_always_on_top(self, on_top))
 
     def _on_theme_preview(self, theme: str) -> None:
         """Preview theme change from settings dialog."""
