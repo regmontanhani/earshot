@@ -5,20 +5,19 @@ from __future__ import annotations
 from pathlib import Path
 from typing import TYPE_CHECKING
 
+import platform
+
 from PySide6.QtCore import Qt
 from PySide6.QtWidgets import (
     QCheckBox,
     QComboBox,
     QDialog,
     QFileDialog,
-    QFormLayout,
-    QFrame,
     QGroupBox,
     QHBoxLayout,
     QLabel,
     QLineEdit,
     QPushButton,
-    QSlider,
     QVBoxLayout,
     QWidget,
 )
@@ -54,6 +53,19 @@ class SettingsDialog(QDialog):
             self.windowFlags() | Qt.WindowType.WindowStaysOnTopHint
         )
         self.setModal(True)
+
+    def showEvent(self, event) -> None:
+        """Force window to front on macOS using native Cocoa API."""
+        super().showEvent(event)
+        if platform.system() == "Darwin":
+            try:
+                from AppKit import NSApp, NSFloatingWindowLevel
+                for window in NSApp.windows():
+                    if self.windowTitle() in (window.title() or ""):
+                        window.setLevel_(NSFloatingWindowLevel + 1)
+                        break
+            except ImportError:
+                pass
 
     def _setup_ui(self) -> None:
         """Build the settings UI."""
@@ -166,20 +178,6 @@ class SettingsDialog(QDialog):
         theme_row.addWidget(self.theme_combo, 1)
         appearance_layout.addLayout(theme_row)
 
-        opacity_row = QHBoxLayout()
-        opacity_row.setSpacing(8)
-        opacity_label = QLabel("Opacity")
-        opacity_label.setFixedWidth(60)
-        opacity_row.addWidget(opacity_label)
-        self.opacity_slider = QSlider(Qt.Orientation.Horizontal)
-        self.opacity_slider.setRange(50, 100)
-        self.opacity_slider.valueChanged.connect(self._on_opacity_changed)
-        opacity_row.addWidget(self.opacity_slider, 1)
-        self.opacity_label = QLabel("100%")
-        self.opacity_label.setFixedWidth(36)
-        opacity_row.addWidget(self.opacity_label)
-        appearance_layout.addLayout(opacity_row)
-
         self.always_on_top = QCheckBox("Always on top")
         appearance_layout.addWidget(self.always_on_top)
 
@@ -258,10 +256,6 @@ class SettingsDialog(QDialog):
         if index >= 0:
             self.theme_combo.setCurrentIndex(index)
 
-        opacity = int(self.settings.get("opacity", 0.95) * 100)
-        self.opacity_slider.setValue(opacity)
-        self.opacity_label.setText(f"{opacity}%")
-
         self.always_on_top.setChecked(self.settings.get("always_on_top", True))
 
         api_key = self.settings.get("openai_api_key", "") or ""
@@ -300,12 +294,6 @@ class SettingsDialog(QDialog):
         """Handle theme change - apply immediately."""
         self.on_theme_change(theme)
 
-    def _on_opacity_changed(self, value: int) -> None:
-        """Handle opacity slider change."""
-        self.opacity_label.setText(f"{value}%")
-        if self.parent():
-            self.parent().setWindowOpacity(value / 100)
-
     def _toggle_key_visibility(self, show: bool) -> None:
         """Toggle API key visibility."""
         if show:
@@ -330,7 +318,6 @@ class SettingsDialog(QDialog):
         self.settings["audio_device"] = self.audio_device_combo.currentText()
         self.settings["model"] = self.model_combo.currentText()
         self.settings["theme"] = self.theme_combo.currentText()
-        self.settings["opacity"] = self.opacity_slider.value() / 100
         self.settings["always_on_top"] = self.always_on_top.isChecked()
 
         api_key = self.openai_key_edit.text().strip()
