@@ -21,7 +21,9 @@ class Transcriber:
     def __init__(self, model_size: str = "large-v3"):
         """Initialize transcriber with specified model size."""
         if model_size not in self.MODELS:
-            raise ValueError(f"Unknown model: {model_size}. Choose from: {list(self.MODELS.keys())}")
+            raise ValueError(
+                f"Unknown model: {model_size}. Choose from: {list(self.MODELS.keys())}"
+            )
 
         self.model_size = model_size
         self.model_path = self.MODELS[model_size]
@@ -105,6 +107,7 @@ class OpenAITranscriber:
 
         try:
             from openai import OpenAI
+
             self.client = OpenAI(api_key=self.api_key)
         except ImportError as e:
             raise ImportError("openai package required: pip install openai") from e
@@ -138,11 +141,13 @@ class OpenAITranscriber:
         # Convert OpenAI response to our format
         segments = []
         for seg in getattr(response, "segments", []) or []:
-            segments.append({
-                "start": seg.get("start", 0),
-                "end": seg.get("end", 0),
-                "text": seg.get("text", ""),
-            })
+            segments.append(
+                {
+                    "start": seg.get("start", 0),
+                    "end": seg.get("end", 0),
+                    "text": seg.get("text", ""),
+                }
+            )
 
         return {
             "text": response.text,
@@ -169,5 +174,6 @@ def get_openai_api_key() -> str | None:
 
     # Check config file
     from .config import load_settings
+
     settings = load_settings()
     return settings.get("openai_api_key")
