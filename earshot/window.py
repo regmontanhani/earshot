@@ -574,7 +574,17 @@ class EarshotWindow(QMainWindow):
 
 def main():
     """Run the Earshot application."""
+    # Set app name for macOS menu bar (must be before QApplication)
+    if sys.platform == "darwin":
+        # This makes the menu bar show "Earshot" instead of "Python"
+        from Foundation import NSBundle
+        bundle = NSBundle.mainBundle()
+        info = bundle.localizedInfoDictionary() or bundle.infoDictionary()
+        if info:
+            info["CFBundleName"] = "Earshot"
+
     app = QApplication(sys.argv)
+    app.setApplicationName("Earshot")
     app.setQuitOnLastWindowClosed(False)  # Keep running in tray
 
     window = EarshotWindow()
