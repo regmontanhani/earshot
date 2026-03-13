@@ -49,3 +49,4 @@ wheels/
 *.log
 /tmp/
 Earshot-Swift/EarshotKit/.build/
+.worktrees/
