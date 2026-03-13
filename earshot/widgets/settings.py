@@ -49,8 +49,10 @@ class SettingsDialog(QDialog):
     def _setup_window(self) -> None:
         """Configure dialog properties."""
         self.setWindowTitle("Settings")
-        self.setMinimumWidth(420)
-        self.setMaximumWidth(500)
+        self.setMinimumWidth(440)
+        self.setWindowFlags(
+            self.windowFlags() | Qt.WindowType.WindowStaysOnTopHint
+        )
         self.setModal(True)
 
     def _setup_ui(self) -> None:
@@ -203,7 +205,6 @@ class SettingsDialog(QDialog):
 
         self.show_key_btn = QPushButton("Show")
         self.show_key_btn.setObjectName("secondaryBtn")
-        self.show_key_btn.setFixedWidth(56)
         self.show_key_btn.setCheckable(True)
         self.show_key_btn.toggled.connect(self._toggle_key_visibility)
         api_row.addWidget(self.show_key_btn)
@@ -220,14 +221,12 @@ class SettingsDialog(QDialog):
 
         cancel_btn = QPushButton("Cancel")
         cancel_btn.setObjectName("secondaryBtn")
-        cancel_btn.setFixedWidth(80)
         cancel_btn.setCursor(Qt.CursorShape.PointingHandCursor)
         cancel_btn.clicked.connect(self.reject)
         button_row.addWidget(cancel_btn)
 
         save_btn = QPushButton("Save")
-        save_btn.setObjectName("recordBtn")
-        save_btn.setFixedWidth(80)
+        save_btn.setObjectName("secondaryBtn")
         save_btn.setCursor(Qt.CursorShape.PointingHandCursor)
         save_btn.clicked.connect(self._save)
         button_row.addWidget(save_btn)
