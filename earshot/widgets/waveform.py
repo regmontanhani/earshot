@@ -1,31 +1,36 @@
 """Waveform visualization widget."""
 
+import math
+
 from PySide6.QtCore import Qt, QTimer
-from PySide6.QtGui import QColor, QPainter
+from PySide6.QtGui import QColor, QLinearGradient, QPainter, QPainterPath
 from PySide6.QtWidgets import QWidget
 
 
 class WaveformWidget(QWidget):
-    """Real-time audio level visualization."""
+    """Real-time audio level visualization with smooth rounded bars."""
 
     def __init__(self, parent=None):
         super().__init__(parent)
-        self.setMinimumHeight(60)
-        self.setMaximumHeight(80)
+        self.setMinimumHeight(80)
+        self.setMaximumHeight(100)
 
-        # Audio level history (for smooth visualization)
-        self._levels: list[float] = [0.0] * 50
+        self._levels: list[float] = [0.0] * 40
         self._is_recording = False
-        self._accent_color = QColor("#4a9eff")
+        self._accent_color = QColor("#0A84FF")
+        self._glow_color = QColor("#0A84FF")
+        self._glow_color.setAlpha(40)
 
-        # Animation timer
+        # Smoother animation at 30 FPS
         self._timer = QTimer(self)
         self._timer.timeout.connect(self._decay_levels)
-        self._timer.setInterval(50)  # 20 FPS
+        self._timer.setInterval(33)
 
     def set_accent_color(self, color: str) -> None:
         """Set the waveform accent color."""
         self._accent_color = QColor(color)
+        self._glow_color = QColor(color)
+        self._glow_color.setAlpha(40)
         self.update()
 
     def set_recording(self, recording: bool) -> None:
@@ -35,57 +40,64 @@ class WaveformWidget(QWidget):
             self._timer.start()
         else:
             self._timer.stop()
-            # Fade out
             self._levels = [0.0] * len(self._levels)
             self.update()
 
     def push_level(self, level: float) -> None:
         """Add a new audio level sample (0.0 to 1.0)."""
-        # Shift levels left and add new one
         self._levels = self._levels[1:] + [min(1.0, max(0.0, level))]
         self.update()
 
     def _decay_levels(self) -> None:
-        """Gradually decay levels when no new data."""
-        self._levels = [max(0.0, lvl * 0.95) for lvl in self._levels]
+        """Smooth exponential decay."""
+        self._levels = [max(0.0, lvl * 0.92) for lvl in self._levels]
         self.update()
 
     def paintEvent(self, event) -> None:
-        """Draw the waveform bars."""
+        """Draw smooth rounded waveform bars with gradient."""
         painter = QPainter(self)
         painter.setRenderHint(QPainter.RenderHint.Antialiasing)
 
-        width = self.width()
-        height = self.height()
+        w = self.width()
+        h = self.height()
         bar_count = len(self._levels)
-        bar_width = max(2, (width - (bar_count - 1) * 2) // bar_count)
-        gap = 2
+        gap = 3
+        bar_w = max(3, (w - (bar_count - 1) * gap) // bar_count)
 
-        # Center the bars
-        total_width = bar_count * bar_width + (bar_count - 1) * gap
-        start_x = (width - total_width) // 2
+        total_w = bar_count * bar_w + (bar_count - 1) * gap
+        start_x = (w - total_w) // 2
 
-        # Draw each bar
         for i, level in enumerate(self._levels):
-            x = start_x + i * (bar_width + gap)
+            x = start_x + i * (bar_w + gap)
 
-            # Bar height based on level (minimum 4px)
-            bar_height = max(4, int(level * (height - 8)))
+            # Minimum bar height for idle state
+            bar_h = max(4, int(level * (h - 16)))
+            y = (h - bar_h) // 2
 
-            # Center vertically
-            y = (height - bar_height) // 2
-
-            # Color with alpha based on level
+            # Gradient from accent to lighter shade
+            grad = QLinearGradient(x, y, x, y + bar_h)
             color = QColor(self._accent_color)
-            if level < 0.1:
-                color.setAlpha(80)
-            elif level < 0.3:
-                color.setAlpha(150)
+
+            if level < 0.05:
+                color.setAlpha(50)
+                grad.setColorAt(0, color)
+                grad.setColorAt(1, color)
+            elif level < 0.2:
+                color.setAlpha(120)
+                lighter = QColor(color)
+                lighter.setAlpha(80)
+                grad.setColorAt(0, color)
+                grad.setColorAt(1, lighter)
             else:
-                color.setAlpha(255)
+                grad.setColorAt(0, color)
+                lighter = QColor(color.lighter(130))
+                lighter.setAlpha(200)
+                grad.setColorAt(1, lighter)
 
             painter.setPen(Qt.PenStyle.NoPen)
-            painter.setBrush(color)
-            painter.drawRoundedRect(x, y, bar_width, bar_height, 2, 2)
+            painter.setBrush(grad)
+
+            radius = min(bar_w / 2, 3)
+            painter.drawRoundedRect(x, y, bar_w, bar_h, radius, radius)
 
         painter.end()

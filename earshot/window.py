@@ -98,29 +98,30 @@ class EarshotWindow(QMainWindow):
         central = QWidget()
         self.setCentralWidget(central)
         layout = QVBoxLayout(central)
-        layout.setContentsMargins(16, 16, 16, 16)
-        layout.setSpacing(12)
+        layout.setContentsMargins(20, 20, 20, 20)
+        layout.setSpacing(16)
 
         # Waveform
         self.waveform = WaveformWidget()
         self.waveform.setObjectName("waveformFrame")
         layout.addWidget(self.waveform)
 
-        # Timer
+        # Timer - large, light weight
         self.timer_label = QLabel("00:00")
         self.timer_label.setObjectName("timerLabel")
         self.timer_label.setAlignment(Qt.AlignmentFlag.AlignCenter)
         layout.addWidget(self.timer_label)
 
-        # Status
-        self.status_label = QLabel("Ready to record")
+        # Status - uppercase, muted
+        self.status_label = QLabel("Ready")
         self.status_label.setObjectName("statusLabel")
         self.status_label.setAlignment(Qt.AlignmentFlag.AlignCenter)
         layout.addWidget(self.status_label)
 
-        # Record button
-        self.record_btn = QPushButton("⏺  Record")
+        # Record button - pill CTA
+        self.record_btn = QPushButton("Record")
         self.record_btn.setObjectName("recordBtn")
+        self.record_btn.setCursor(Qt.CursorShape.PointingHandCursor)
         self.record_btn.clicked.connect(self._toggle_recording)
         layout.addWidget(self.record_btn)
 
@@ -134,11 +135,12 @@ class EarshotWindow(QMainWindow):
         history_row = QHBoxLayout()
         history_row.setSpacing(8)
 
-        self.prev_btn = QPushButton("◀")
+        self.prev_btn = QPushButton("  <  ")
         self.prev_btn.setObjectName("secondaryBtn")
-        self.prev_btn.setFixedWidth(40)
+        self.prev_btn.setFixedWidth(44)
         self.prev_btn.setEnabled(False)
         self.prev_btn.setToolTip("Previous session")
+        self.prev_btn.setCursor(Qt.CursorShape.PointingHandCursor)
         self.prev_btn.clicked.connect(self._go_previous)
         history_row.addWidget(self.prev_btn)
 
@@ -147,11 +149,12 @@ class EarshotWindow(QMainWindow):
         self.history_label.setAlignment(Qt.AlignmentFlag.AlignCenter)
         history_row.addWidget(self.history_label, 1)
 
-        self.next_btn = QPushButton("▶")
+        self.next_btn = QPushButton("  >  ")
         self.next_btn.setObjectName("secondaryBtn")
-        self.next_btn.setFixedWidth(40)
+        self.next_btn.setFixedWidth(44)
         self.next_btn.setEnabled(False)
         self.next_btn.setToolTip("Next session")
+        self.next_btn.setCursor(Qt.CursorShape.PointingHandCursor)
         self.next_btn.clicked.connect(self._go_next)
         history_row.addWidget(self.next_btn)
 
@@ -171,15 +174,17 @@ class EarshotWindow(QMainWindow):
         action_row = QHBoxLayout()
         action_row.setSpacing(8)
 
-        self.folder_btn = QPushButton("📁 Open Folder")
+        self.folder_btn = QPushButton("Open Folder")
         self.folder_btn.setObjectName("secondaryBtn")
+        self.folder_btn.setCursor(Qt.CursorShape.PointingHandCursor)
         self.folder_btn.clicked.connect(self._open_output_folder)
         action_row.addWidget(self.folder_btn)
 
         action_row.addStretch()
 
-        self.settings_btn = QPushButton("⚙ Settings")
+        self.settings_btn = QPushButton("Settings")
         self.settings_btn.setObjectName("secondaryBtn")
+        self.settings_btn.setCursor(Qt.CursorShape.PointingHandCursor)
         self.settings_btn.clicked.connect(self._open_settings)
         action_row.addWidget(self.settings_btn)
 
@@ -226,11 +231,11 @@ class EarshotWindow(QMainWindow):
         theme = self.settings.get("theme", "dark")
         self.setStyleSheet(get_theme(theme))
 
-        # Update waveform color
+        # Update waveform accent to match theme
         if theme == "light":
-            self.waveform.set_accent_color("#0066cc")
+            self.waveform.set_accent_color("#007AFF")
         else:
-            self.waveform.set_accent_color("#4a9eff")
+            self.waveform.set_accent_color("#0A84FF")
 
     # Audio monitoring (preview without recording)
 
@@ -294,7 +299,7 @@ class EarshotWindow(QMainWindow):
         self._current_transcript = None
 
         # Update UI
-        self.record_btn.setText("⏹  Stop")
+        self.record_btn.setText("Stop")
         self.record_btn.setProperty("recording", True)
         self.record_btn.style().unpolish(self.record_btn)
         self.record_btn.style().polish(self.record_btn)
@@ -325,7 +330,7 @@ class EarshotWindow(QMainWindow):
         self._timer.stop()
 
         # Update UI
-        self.record_btn.setText("⏺  Record")
+        self.record_btn.setText("Record")
         self.record_btn.setProperty("recording", False)
         self.record_btn.style().unpolish(self.record_btn)
         self.record_btn.style().polish(self.record_btn)
@@ -455,9 +460,9 @@ class EarshotWindow(QMainWindow):
         """Preview theme change from settings dialog."""
         self.setStyleSheet(get_theme(theme))
         if theme == "light":
-            self.waveform.set_accent_color("#0066cc")
+            self.waveform.set_accent_color("#007AFF")
         else:
-            self.waveform.set_accent_color("#4a9eff")
+            self.waveform.set_accent_color("#0A84FF")
 
     def _setup_shortcuts(self) -> None:
         """Set up keyboard shortcuts."""
