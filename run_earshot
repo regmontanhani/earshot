@@ -1,0 +1,12 @@
+#!/bin/bash
+# Earshot - Launch the floating window app
+
+SCRIPT_DIR="$(cd "$(dirname "$(readlink -f "$0" 2>/dev/null || echo "$0")")" && pwd)"
+
+# Activate venv if it exists
+if [ -d "$SCRIPT_DIR/.venv" ]; then
+    source "$SCRIPT_DIR/.venv/bin/activate"
+fi
+
+# Launch the app
+exec python3 -m earshot.window "$@"
