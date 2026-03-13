@@ -43,10 +43,15 @@ def write_srt(transcript: dict, output_path: Path) -> None:
             start = seg.get("start", 0)
             end = seg.get("end", 0)
             text = seg.get("text", "").strip()
+            speaker = seg.get("speaker", "")
             
             # Skip empty or zero-duration segments
             if not text or end <= start:
                 continue
+            
+            # Prepend speaker label if available
+            if speaker:
+                text = f"[{speaker}]: {text}"
             
             f.write(f"{index}\n")
             f.write(f"{format_timestamp_srt(start)} --> {format_timestamp_srt(end)}\n")
@@ -65,10 +70,15 @@ def write_vtt(transcript: dict, output_path: Path) -> None:
             start = seg.get("start", 0)
             end = seg.get("end", 0)
             text = seg.get("text", "").strip()
+            speaker = seg.get("speaker", "")
             
             # Skip empty or zero-duration segments
             if not text or end <= start:
                 continue
+            
+            # Prepend speaker label if available
+            if speaker:
+                text = f"[{speaker}]: {text}"
             
             f.write(f"{format_timestamp_vtt(start)} --> {format_timestamp_vtt(end)}\n")
             f.write(f"{text}\n\n")
@@ -79,12 +89,13 @@ def write_tsv(transcript: dict, output_path: Path) -> None:
     segments = transcript.get("segments", [])
     
     with open(output_path, "w", encoding="utf-8") as f:
-        f.write("start\tend\ttext\n")
+        f.write("start\tend\tspeaker\ttext\n")
         
         for seg in segments:
             start = seg.get("start", 0)
             end = seg.get("end", 0)
             text = seg.get("text", "").strip().replace("\t", " ")
+            speaker = seg.get("speaker", "").replace("\t", " ")
             
             # Skip empty or zero-duration segments
             if not text or end <= start:
@@ -92,7 +103,7 @@ def write_tsv(transcript: dict, output_path: Path) -> None:
             
             start_ms = int(start * 1000)
             end_ms = int(end * 1000)
-            f.write(f"{start_ms}\t{end_ms}\t{text}\n")
+            f.write(f"{start_ms}\t{end_ms}\t{speaker}\t{text}\n")
 
 
 def write_all_formats(
