@@ -14,11 +14,12 @@ echo ""
 
 # Check for Apple Silicon
 check_apple_silicon() {
-    if [[ $(uname -m) != "arm64" ]]; then
-        echo "⚠️  Warning: This app is optimized for Apple Silicon (M1/M2/M3/M4)."
-        echo "   It may run slower on Intel Macs."
-        echo ""
+    if [[ $(uname -m) == "arm64" ]]; then
+        echo "✅ Apple Silicon detected - optimal performance"
+    else
+        echo "ℹ️  Intel Mac detected - transcription will use CPU mode"
     fi
+    echo ""
 }
 
 # Check for Homebrew
@@ -85,7 +86,7 @@ install_python_deps() {
     # Activate and install
     source "$SCRIPT_DIR/.venv/bin/activate"
     pip install -q --upgrade pip
-    pip install -q PySide6 rumps mlx-whisper pyaudio soundfile numpy watchdog openai
+    pip install -q PySide6 rumps faster-whisper pyaudio soundfile numpy watchdog openai
     
     echo "   ✅ Python dependencies installed"
 }
@@ -115,10 +116,10 @@ install_ollama() {
     echo "   ✅ Ollama ready with llama3.2"
 }
 
-# Setup Multi-Output Device
+# Setup Audio Devices (Multi-Output + Aggregate)
 setup_audio_device() {
     echo ""
-    echo "🔊 Setting up Multi-Output Audio Device..."
+    echo "🔊 Setting up Audio Devices for Meeting Capture..."
     echo ""
     
     # Check if BlackHole is visible
@@ -136,19 +137,24 @@ setup_audio_device() {
         echo "   ⚠️  BlackHole still not visible. You may need to reboot."
     fi
     
-    # Guide user through Multi-Output Device setup
+    # Guide user through audio device setup
     echo ""
-    echo "   To capture meeting audio, you need a Multi-Output Device."
-    echo "   This sends audio to both your speakers AND BlackHole for recording."
+    echo "   To capture meeting audio (others + yourself), you need TWO devices:"
+    echo ""
+    echo "   1. MULTI-OUTPUT DEVICE (for system sound output)"
+    echo "      Sends audio to speakers AND BlackHole"
+    echo ""
+    echo "   2. AGGREGATE DEVICE (for Earshot input)"
+    echo "      Captures BlackHole + your microphone"
     echo ""
     
-    read -p "   Open Audio MIDI Setup to create it now? (y/n) " -n 1 -r
+    read -p "   Open Audio MIDI Setup to create these now? (y/n) " -n 1 -r
     echo ""
     
     if [[ $REPLY =~ ^[Yy]$ ]]; then
         echo ""
         echo "   ┌─────────────────────────────────────────────────────────┐"
-        echo "   │  FOLLOW THESE STEPS:                                   │"
+        echo "   │  STEP 1: CREATE MULTI-OUTPUT DEVICE                    │"
         echo "   │                                                         │"
         echo "   │  1. Click '+' at bottom-left → 'Create Multi-Output    │"
         echo "   │     Device'                                            │"
@@ -157,17 +163,38 @@ setup_audio_device() {
         echo "   │     ☑ BlackHole 2ch                                    │"
         echo "   │     ☑ Your speakers/headphones                         │"
         echo "   │                                                         │"
-        echo "   │  3. Double-click 'Multi-Output Device' to rename it    │"
-        echo "   │     to 'Meeting Audio'                                 │"
-        echo "   │                                                         │"
-        echo "   │  4. Close Audio MIDI Setup when done                   │"
+        echo "   │  3. Double-click to rename it 'Meeting Output'         │"
         echo "   └─────────────────────────────────────────────────────────┘"
         echo ""
         
         open -a "Audio MIDI Setup"
         
         read -p "   Press Enter when you've created the Multi-Output Device..."
-        echo "   ✅ Audio device setup complete"
+        
+        echo ""
+        echo "   ┌─────────────────────────────────────────────────────────┐"
+        echo "   │  STEP 2: CREATE AGGREGATE DEVICE                       │"
+        echo "   │                                                         │"
+        echo "   │  1. Click '+' at bottom-left → 'Create Aggregate       │"
+        echo "   │     Device'                                            │"
+        echo "   │                                                         │"
+        echo "   │  2. Check the boxes for:                               │"
+        echo "   │     ☑ BlackHole 2ch (captures others' audio)           │"
+        echo "   │     ☑ MacBook Pro Microphone (captures your voice)     │"
+        echo "   │                                                         │"
+        echo "   │  3. Double-click to rename it 'Meeting Input'          │"
+        echo "   │                                                         │"
+        echo "   │  4. Close Audio MIDI Setup when done                   │"
+        echo "   └─────────────────────────────────────────────────────────┘"
+        echo ""
+        
+        read -p "   Press Enter when you've created both devices..."
+        echo ""
+        echo "   ✅ Audio devices setup complete!"
+        echo ""
+        echo "   📝 IMPORTANT: Before joining a meeting:"
+        echo "      • Set Mac audio OUTPUT to 'Meeting Output'"
+        echo "      • In Earshot settings, select 'Meeting Input' as input device"
     else
         echo "   You can set this up later by opening Audio MIDI Setup."
     fi
@@ -230,16 +257,16 @@ print_summary() {
     echo "║                    Setup Complete! 🎉                        ║"
     echo "╚══════════════════════════════════════════════════════════════╝"
     echo ""
-    echo "To start Earshot now:"
-    echo "  cd \"$SCRIPT_DIR\""
-    echo "  ./run_app.sh"
-    echo ""
-    echo "Look for the 🎙️ icon in your menu bar!"
+    echo "To start Earshot:"
+    echo "  earshot"
     echo ""
     echo "For live meeting transcription:"
-    echo "  1. Set Mac audio output to 'Meeting Audio' (your Multi-Output Device)"
-    echo "  2. Join your meeting"
-    echo "  3. Click 🎙️ → Start Live Transcription"
+    echo "  1. Set Mac audio OUTPUT to 'Meeting Output'"
+    echo "  2. In Earshot settings (⌘,), select 'Meeting Input' as input"
+    echo "  3. Join your meeting"
+    echo "  4. Click the record button ⏺"
+    echo ""
+    echo "This captures BOTH meeting audio AND your microphone!"
     echo ""
     echo "Transcripts are saved to: ~/Documents/Earshot/"
     echo ""
