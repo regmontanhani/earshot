@@ -9,6 +9,7 @@ DEFAULTS = {
     "model_size": "large-v3",
     "output_dir": str(Path.home() / "Documents" / "Earshot"),
     "audio_device": "BlackHole 2ch",
+    "auto_stop_enabled": True,
     "silence_timeout": 60,
     "chunk_duration": 30,
     "output_formats": ["json", "txt", "srt", "vtt", "tsv"],

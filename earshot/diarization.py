@@ -18,18 +18,21 @@ def is_ollama_available() -> bool:
         return False
 
 
-def identify_speakers(transcript: dict, model: str = "llama3.2") -> Optional[dict]:
+def identify_speakers(transcript: dict, model: str = "llama3.2", verbose: bool = True) -> Optional[dict]:
     """
     Use Ollama to identify speakers in a transcript.
     
     Args:
         transcript: Transcript dictionary with 'segments'
         model: Ollama model to use
+        verbose: Print progress messages
     
     Returns:
         Dictionary mapping speaker IDs to names, or None if failed
     """
     if not is_ollama_available():
+        if verbose:
+            print("⚠️  Ollama not available, skipping speaker identification")
         return None
     
     # Build transcript text for analysis (first 50 segments for context)
@@ -41,6 +44,8 @@ def identify_speakers(transcript: dict, model: str = "llama3.2") -> Optional[dic
     )
     
     if not transcript_text:
+        if verbose:
+            print("⚠️  No transcript text for speaker identification")
         return None
     
     prompt = f"""Below is a transcript with speaker labels like SPEAKER_00, SPEAKER_01, etc. Based on the conversation context, names mentioned, and how people refer to each other, identify who each speaker is.
@@ -54,15 +59,20 @@ Transcript:
 {transcript_text}"""
 
     try:
+        if verbose:
+            print("🤖 Identifying speakers with Ollama (this may take a moment)...")
+        
         result = subprocess.run(
             ["ollama", "run", model],
             input=prompt,
             capture_output=True,
             text=True,
-            timeout=60,
+            timeout=120,
         )
         
         if result.returncode != 0:
+            if verbose:
+                print("⚠️  Ollama returned an error, skipping speaker identification")
             return None
         
         # Extract JSON from response
@@ -73,14 +83,25 @@ Transcript:
         end = response.rfind("}") + 1
         
         if start == -1 or end == 0:
+            if verbose:
+                print("⚠️  Could not parse speaker identification response")
             return None
         
         json_str = response[start:end]
         speaker_map = json.loads(json_str)
         
+        if verbose:
+            print(f"✅ Identified {len(speaker_map)} speakers")
+        
         return speaker_map
     
-    except (subprocess.SubprocessError, json.JSONDecodeError, Exception):
+    except subprocess.TimeoutExpired:
+        if verbose:
+            print("⚠️  Speaker identification timed out")
+        return None
+    except (subprocess.SubprocessError, json.JSONDecodeError, Exception) as e:
+        if verbose:
+            print(f"⚠️  Speaker identification failed: {e}")
         return None
 
 

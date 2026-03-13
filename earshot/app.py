@@ -20,7 +20,7 @@ from .config import load_settings, save_settings, get_output_dir
 from .diarization import diarize_transcript, is_ollama_available
 from .file_processor import prepare_audio, get_output_base_name, is_supported_file
 from .output_writer import write_all_formats
-from .transcriber import Transcriber
+from .transcriber import Transcriber, OpenAITranscriber, get_openai_api_key
 
 # Audio level visualization characters
 AUDIO_LEVELS = ["▁", "▂", "▃", "▄", "▅", "▆", "▇", "█"]
@@ -74,6 +74,25 @@ class EarshotApp(rumps.App):
         self._populate_device_menu(device_menu)
         settings_menu.add(device_menu)
         
+        # Auto-stop submenu
+        autostop_menu = rumps.MenuItem("Auto-Stop on Silence")
+        
+        # Enable/disable toggle
+        enabled_item = rumps.MenuItem("Enabled", callback=self.toggle_auto_stop)
+        enabled_item.state = 1 if self.settings.get("auto_stop_enabled", True) else 0
+        autostop_menu.add(enabled_item)
+        autostop_menu.add(None)  # Separator
+        
+        # Timeout options
+        for seconds in [30, 60, 120, 300]:
+            label = f"{seconds}s" if seconds < 60 else f"{seconds // 60} min"
+            item = rumps.MenuItem(label, callback=self.set_silence_timeout)
+            item.seconds = seconds  # Store value on item
+            if seconds == self.settings.get("silence_timeout", 60):
+                item.state = 1
+            autostop_menu.add(item)
+        settings_menu.add(autostop_menu)
+        
         return settings_menu
     
     def _populate_device_menu(self, device_menu: rumps.MenuItem) -> None:
@@ -90,9 +109,11 @@ class EarshotApp(rumps.App):
         except Exception:
             device_menu.add(rumps.MenuItem("(No devices found)"))
     
-    def _update_icon(self, recording: bool, level: int = 0) -> None:
-        """Update menu bar icon based on recording state and audio level."""
-        if recording:
+    def _update_icon(self, recording: bool, level: int = 0, status: str = None) -> None:
+        """Update menu bar icon based on recording state, audio level, or status."""
+        if status:
+            self.title = status
+        elif recording:
             # Show audio level visualization
             if level > 0 and level <= len(AUDIO_LEVELS):
                 self.title = f"🔴 {AUDIO_LEVELS[level - 1]}"
@@ -148,11 +169,16 @@ class EarshotApp(rumps.App):
     
     def _start_recording(self) -> None:
         """Start live audio capture."""
+        # Only set silence timeout callback if auto-stop is enabled
+        silence_callback = None
+        if self.settings.get("auto_stop_enabled", True):
+            silence_callback = self._on_silence_timeout
+        
         self.audio_capture = AudioCapture(
             device_name=self.settings["audio_device"],
             chunk_duration=self.settings["chunk_duration"],
-            silence_timeout=self.settings["silence_timeout"],
-            on_silence_timeout=self._on_silence_timeout,
+            silence_timeout=self.settings.get("silence_timeout", 60),
+            on_silence_timeout=silence_callback,
         )
         
         if not self.audio_capture.start():
@@ -210,6 +236,8 @@ class EarshotApp(rumps.App):
     def _transcribe_recording(self, chunks: list[Path]) -> None:
         """Transcribe recorded chunks (runs in background thread)."""
         try:
+            self._update_icon(recording=False, status="⏳ Transcribing...")
+            
             transcriber = self._get_transcriber()
             
             if len(chunks) == 1:
@@ -219,12 +247,10 @@ class EarshotApp(rumps.App):
             
             # Attempt speaker diarization with Ollama
             if is_ollama_available():
-                rumps.notification(
-                    title="Earshot",
-                    subtitle="Identifying speakers...",
-                    message="Using Ollama for speaker diarization",
-                )
+                self._update_icon(recording=False, status="🤖 Identifying...")
                 transcript = diarize_transcript(transcript)
+            
+            self._update_icon(recording=False, status="💾 Saving...")
             
             # Generate output filename
             timestamp = self.recording_start_time.strftime("%Y-%m-%d_%H-%M-%S")
@@ -238,6 +264,7 @@ class EarshotApp(rumps.App):
                 formats=self.settings["output_formats"],
             )
             
+            self._update_icon(recording=False)
             rumps.notification(
                 title="Earshot",
                 subtitle="Transcription Complete",
@@ -245,6 +272,7 @@ class EarshotApp(rumps.App):
             )
         
         except Exception as e:
+            self._update_icon(recording=False)
             rumps.notification(
                 title="Earshot",
                 subtitle="Transcription Failed",
@@ -252,18 +280,19 @@ class EarshotApp(rumps.App):
             )
         
         finally:
+            self._update_icon(recording=False)
             if self.audio_capture:
                 self.audio_capture.cleanup()
     
     def _on_silence_timeout(self) -> None:
-        """Called when silence timeout is reached."""
+        """Called when silence timeout is reached (from recording thread)."""
         rumps.notification(
             title="Earshot",
             subtitle="Auto-stopping",
             message="No audio detected for 60 seconds.",
         )
-        # Schedule stop on main thread
-        self._stop_recording()
+        # Schedule stop on main thread to avoid joining current thread
+        threading.Thread(target=self._stop_recording, daemon=True).start()
     
     @rumps.clicked("Transcribe File...")
     def transcribe_file(self, sender: rumps.MenuItem) -> None:
@@ -312,16 +341,32 @@ class EarshotApp(rumps.App):
             )
     
     def _transcribe_file(self, file_path: Path) -> None:
-        """Transcribe a file (runs in background thread)."""
+        """Transcribe a file using OpenAI API (runs in background thread)."""
         temp_audio = None
         
         try:
+            self._update_icon(recording=False, status="⏳ Transcribing...")
+            
             audio_path, is_temp = prepare_audio(file_path)
             if is_temp:
                 temp_audio = audio_path
             
-            transcriber = self._get_transcriber()
+            # Use OpenAI for file transcription (faster, no memory issues)
+            api_key = get_openai_api_key()
+            if api_key:
+                transcriber = OpenAITranscriber(api_key=api_key)
+            else:
+                # Fallback to local if no API key
+                transcriber = self._get_transcriber()
+            
             transcript = transcriber.transcribe(audio_path)
+            
+            # Attempt speaker diarization with Ollama
+            if is_ollama_available():
+                self._update_icon(recording=False, status="🤖 Identifying...")
+                transcript = diarize_transcript(transcript)
+            
+            self._update_icon(recording=False, status="💾 Saving...")
             
             # Save to same directory as input file
             output_dir = file_path.parent
@@ -334,6 +379,7 @@ class EarshotApp(rumps.App):
                 formats=self.settings["output_formats"],
             )
             
+            self._update_icon(recording=False)
             rumps.notification(
                 title="Earshot",
                 subtitle="Transcription Complete",
@@ -341,6 +387,7 @@ class EarshotApp(rumps.App):
             )
         
         except Exception as e:
+            self._update_icon(recording=False)
             rumps.notification(
                 title="Earshot",
                 subtitle="Transcription Failed",
@@ -348,6 +395,7 @@ class EarshotApp(rumps.App):
             )
         
         finally:
+            self._update_icon(recording=False)
             if temp_audio and temp_audio.exists():
                 os.remove(temp_audio)
     
@@ -402,6 +450,30 @@ class EarshotApp(rumps.App):
             del device_menu[key]
         
         self._populate_device_menu(device_menu)
+    
+    def toggle_auto_stop(self, sender: rumps.MenuItem) -> None:
+        """Toggle auto-stop on silence."""
+        sender.state = 0 if sender.state else 1
+        self.settings["auto_stop_enabled"] = bool(sender.state)
+        save_settings(self.settings)
+        
+        status = "enabled" if sender.state else "disabled"
+        rumps.notification(
+            title="Earshot",
+            subtitle="Auto-Stop",
+            message=f"Auto-stop on silence {status}.",
+        )
+    
+    def set_silence_timeout(self, sender: rumps.MenuItem) -> None:
+        """Set the silence timeout duration."""
+        # Update checkmarks (skip Enabled and separator)
+        for item in sender.parent.values():
+            if isinstance(item, rumps.MenuItem) and hasattr(item, "seconds"):
+                item.state = 0
+        sender.state = 1
+        
+        self.settings["silence_timeout"] = sender.seconds
+        save_settings(self.settings)
     
     def quit_app(self, sender: rumps.MenuItem) -> None:
         """Quit the application."""
