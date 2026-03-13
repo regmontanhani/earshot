@@ -2,13 +2,14 @@
 
 from __future__ import annotations
 
+import subprocess
 import sys
 import threading
 from datetime import datetime
 from pathlib import Path
 
 from PySide6.QtCore import Qt, QTimer, Signal, Slot
-from PySide6.QtGui import QAction
+from PySide6.QtGui import QAction, QKeySequence, QShortcut
 from PySide6.QtWidgets import (
     QApplication,
     QFrame,
@@ -25,10 +26,12 @@ from PySide6.QtWidgets import (
 from earshot.audio_capture import AudioCapture
 from earshot.config import get_output_dir, load_settings, save_settings
 from earshot.diarization import diarize_transcript, is_ollama_available
+from earshot.history import HistoryManager
 from earshot.output_writer import write_all_formats
 from earshot.themes import get_theme
 from earshot.transcriber import OpenAITranscriber, Transcriber, get_openai_api_key
 from earshot.widgets import TranscriptViewer, WaveformWidget
+from earshot.widgets.settings import SettingsDialog
 
 
 class EarshotWindow(QMainWindow):
@@ -47,12 +50,24 @@ class EarshotWindow(QMainWindow):
         self._audio_capture: AudioCapture | None = None
         self._current_transcript: dict | None = None
 
+        # Initialize history manager
+        self._history = HistoryManager(
+            get_output_dir(),
+            on_change=self._on_history_changed,
+        )
+        self._history.scan()
+
         self._setup_window()
         self._setup_ui()
         self._setup_tray()
         self._setup_timer()
+        self._setup_shortcuts()
         self._connect_signals()
         self._apply_theme()
+        self._update_history_ui()
+
+        # Start watching for new sessions
+        self._history.start_watching()
 
     def _setup_window(self) -> None:
         """Configure window properties."""
@@ -119,6 +134,7 @@ class EarshotWindow(QMainWindow):
         self.prev_btn.setFixedWidth(40)
         self.prev_btn.setEnabled(False)
         self.prev_btn.setToolTip("Previous session")
+        self.prev_btn.clicked.connect(self._go_previous)
         history_row.addWidget(self.prev_btn)
 
         self.history_label = QLabel("New Session")
@@ -131,6 +147,7 @@ class EarshotWindow(QMainWindow):
         self.next_btn.setFixedWidth(40)
         self.next_btn.setEnabled(False)
         self.next_btn.setToolTip("Next session")
+        self.next_btn.clicked.connect(self._go_next)
         history_row.addWidget(self.next_btn)
 
         layout.addLayout(history_row)
@@ -351,16 +368,122 @@ class EarshotWindow(QMainWindow):
 
     def _open_output_folder(self) -> None:
         """Open the output folder in Finder."""
-        import subprocess
-
         output_dir = get_output_dir()
         output_dir.mkdir(parents=True, exist_ok=True)
         subprocess.run(["open", str(output_dir)])
 
     def _open_settings(self) -> None:
         """Open settings dialog."""
-        # TODO: Implement settings dialog (Phase 4)
-        pass
+        dialog = SettingsDialog(
+            settings=self.settings,
+            on_save=self._on_settings_saved,
+            on_theme_change=self._on_theme_preview,
+            parent=self,
+        )
+        dialog.exec()
+
+    def _on_settings_saved(self, new_settings: dict) -> None:
+        """Handle settings saved from dialog."""
+        self.settings = new_settings
+        save_settings(self.settings)
+        self._apply_theme()
+
+        # Update always-on-top
+        if self.settings.get("always_on_top", True):
+            self.setWindowFlags(self.windowFlags() | Qt.WindowType.WindowStaysOnTopHint)
+        else:
+            self.setWindowFlags(self.windowFlags() & ~Qt.WindowType.WindowStaysOnTopHint)
+        self.show()  # Required after changing window flags
+
+    def _on_theme_preview(self, theme: str) -> None:
+        """Preview theme change from settings dialog."""
+        self.setStyleSheet(get_theme(theme))
+        if theme == "light":
+            self.waveform.set_accent_color("#0066cc")
+        else:
+            self.waveform.set_accent_color("#4a9eff")
+
+    def _setup_shortcuts(self) -> None:
+        """Set up keyboard shortcuts."""
+        # Space to toggle recording
+        record_shortcut = QShortcut(QKeySequence(Qt.Key.Key_Space), self)
+        record_shortcut.activated.connect(self._toggle_recording)
+
+        # Cmd+, to open settings
+        settings_shortcut = QShortcut(QKeySequence("Ctrl+,"), self)
+        settings_shortcut.activated.connect(self._open_settings)
+
+        # Cmd+Q to quit
+        quit_shortcut = QShortcut(QKeySequence("Ctrl+Q"), self)
+        quit_shortcut.activated.connect(self._quit)
+
+        # Left/Right arrows for history navigation
+        prev_shortcut = QShortcut(QKeySequence(Qt.Key.Key_Left), self)
+        prev_shortcut.activated.connect(self._go_previous)
+
+        next_shortcut = QShortcut(QKeySequence(Qt.Key.Key_Right), self)
+        next_shortcut.activated.connect(self._go_next)
+
+    # History navigation
+
+    def _go_previous(self) -> None:
+        """Navigate to previous session."""
+        if self._is_recording:
+            return
+        session = self._history.go_previous()
+        if session:
+            self._load_session(session)
+        self._update_history_ui()
+
+    def _go_next(self) -> None:
+        """Navigate to next session."""
+        if self._is_recording:
+            return
+        session = self._history.go_next()
+        if session:
+            self._load_session(session)
+        else:
+            # Back to "New Session" mode
+            self.transcript_view.clear()
+            self.status_label.setText("Ready to record")
+            self.timer_label.setText("00:00")
+        self._update_history_ui()
+
+    def _load_session(self, session) -> None:
+        """Load a session into the transcript viewer."""
+        # Find the JSON file
+        json_files = [f for f in session.files if f.suffix == ".json"]
+        if not json_files:
+            return
+
+        import json
+
+        with open(json_files[0]) as f:
+            transcript = json.load(f)
+
+        self._current_transcript = transcript
+        self.transcript_view.set_transcript(transcript)
+
+        # Update UI
+        if session.duration:
+            minutes = int(session.duration // 60)
+            seconds = int(session.duration % 60)
+            self.timer_label.setText(f"{minutes:02d}:{seconds:02d}")
+        else:
+            self.timer_label.setText("--:--")
+
+        self.status_label.setText(session.display_time)
+
+    def _update_history_ui(self) -> None:
+        """Update history navigation UI state."""
+        self.prev_btn.setEnabled(self._history.has_previous and not self._is_recording)
+        self.next_btn.setEnabled(self._history.has_next and not self._is_recording)
+        self.history_label.setText(self._history.get_display_label())
+
+    def _on_history_changed(self) -> None:
+        """Handle history change from file watcher."""
+        # Called from watchdog thread, so use signal
+        QTimer.singleShot(0, self._update_history_ui)
 
     def _tray_activated(self, reason: QSystemTrayIcon.ActivationReason) -> None:
         """Handle tray icon click."""
@@ -381,6 +504,9 @@ class EarshotWindow(QMainWindow):
         # Stop recording if active
         if self._is_recording and self._audio_capture:
             self._audio_capture.stop()
+
+        # Stop history watcher
+        self._history.stop_watching()
 
         QApplication.quit()
 

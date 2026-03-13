@@ -76,9 +76,16 @@ install_python_deps() {
     PYTHON_VERSION=$(python3 --version 2>&1 | cut -d' ' -f2 | cut -d'.' -f1,2)
     echo "   Python version: $PYTHON_VERSION"
     
-    # Install packages
-    pip3 install --break-system-packages -q rumps mlx-whisper pyaudio soundfile numpy 2>/dev/null || \
-    pip3 install rumps mlx-whisper pyaudio soundfile numpy
+    # Create venv if it doesn't exist
+    if [ ! -d "$SCRIPT_DIR/.venv" ]; then
+        echo "   Creating virtual environment..."
+        python3 -m venv "$SCRIPT_DIR/.venv"
+    fi
+    
+    # Activate and install
+    source "$SCRIPT_DIR/.venv/bin/activate"
+    pip install -q --upgrade pip
+    pip install -q PySide6 rumps mlx-whisper pyaudio soundfile numpy watchdog openai
     
     echo "   ✅ Python dependencies installed"
 }
