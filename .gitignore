@@ -48,3 +48,4 @@ wheels/
 # Temp files
 *.log
 /tmp/
+Earshot-Swift/EarshotKit/.build/
