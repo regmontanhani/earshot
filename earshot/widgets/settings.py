@@ -118,9 +118,21 @@ class SettingsDialog(QDialog):
         trans_layout.addRow("", refresh_row)
 
         self.model_combo = QComboBox()
-        self.model_combo.addItems(["tiny", "base", "small", "medium", "large", "turbo"])
-        self.model_combo.setToolTip("Whisper model size. Larger = more accurate but slower.")
+        self.model_combo.addItems(["tiny", "base", "small", "medium", "large-v3", "turbo"])
+        self.model_combo.setToolTip(
+            "Whisper model size (runs locally on your Mac):\n"
+            "• tiny/base: Fast, lower quality\n"
+            "• small: Good balance (recommended)\n"
+            "• medium/large-v3: Best quality, slower\n"
+            "• turbo: Fast + good quality"
+        )
         trans_layout.addRow("Model:", self.model_combo)
+
+        # Local indicator
+        local_hint = QLabel("✅ Transcription runs 100% locally - no data leaves your Mac")
+        local_hint.setObjectName("statusLabel")
+        local_hint.setWordWrap(True)
+        trans_layout.addRow("", local_hint)
 
         layout.addWidget(trans_group)
 
@@ -162,7 +174,7 @@ class SettingsDialog(QDialog):
         api_row = QHBoxLayout()
         self.openai_key_edit = QLineEdit()
         self.openai_key_edit.setEchoMode(QLineEdit.EchoMode.Password)
-        self.openai_key_edit.setPlaceholderText("sk-...")
+        self.openai_key_edit.setPlaceholderText("sk-... (optional)")
         api_row.addWidget(self.openai_key_edit)
 
         self.show_key_btn = QPushButton("Show")
@@ -173,8 +185,12 @@ class SettingsDialog(QDialog):
 
         api_layout.addRow("OpenAI:", api_row)
 
-        hint_label = QLabel("Leave blank to use local MLX-Whisper")
+        hint_label = QLabel(
+            "Optional: Only needed if you want cloud transcription.\n"
+            "Leave blank to use local faster-whisper (recommended)."
+        )
         hint_label.setObjectName("statusLabel")
+        hint_label.setWordWrap(True)
         api_layout.addRow("", hint_label)
 
         layout.addWidget(api_group)

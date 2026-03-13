@@ -1,19 +1,112 @@
 """Speaker diarization using local Ollama."""
 
+from __future__ import annotations
+
 import json
 import subprocess
+import time
 
 
-def is_ollama_available() -> bool:
-    """Check if Ollama is installed and running."""
+def ensure_ollama_running() -> bool:
+    """
+    Ensure Ollama is installed and running. Auto-starts if needed.
+    
+    Returns:
+        True if Ollama is available, False if not installed
+    """
+    # Check if ollama command exists
+    try:
+        subprocess.run(
+            ["which", "ollama"],
+            capture_output=True,
+            timeout=5,
+        )
+    except (subprocess.SubprocessError, FileNotFoundError):
+        return False
+
+    # Check if already running by trying to list models
     try:
         result = subprocess.run(
             ["ollama", "list"],
             capture_output=True,
             timeout=5,
         )
-        return result.returncode == 0
+        if result.returncode == 0:
+            return True
     except (subprocess.SubprocessError, FileNotFoundError):
+        pass
+
+    # Not running - try to start it
+    try:
+        # Start ollama serve in background
+        subprocess.Popen(
+            ["ollama", "serve"],
+            stdout=subprocess.DEVNULL,
+            stderr=subprocess.DEVNULL,
+            start_new_session=True,
+        )
+        
+        # Wait for it to be ready (up to 10 seconds)
+        for _ in range(20):
+            time.sleep(0.5)
+            try:
+                result = subprocess.run(
+                    ["ollama", "list"],
+                    capture_output=True,
+                    timeout=5,
+                )
+                if result.returncode == 0:
+                    return True
+            except Exception:
+                pass
+        
+        return False
+    except Exception:
+        return False
+
+
+def is_ollama_available() -> bool:
+    """Check if Ollama is installed and running, auto-starting if needed."""
+    return ensure_ollama_running()
+
+
+def ensure_model_available(model: str = "llama3.2") -> bool:
+    """
+    Ensure the specified Ollama model is downloaded.
+    
+    Args:
+        model: Model name to check/pull
+        
+    Returns:
+        True if model is available, False otherwise
+    """
+    if not ensure_ollama_running():
+        return False
+    
+    # Check if model exists
+    try:
+        result = subprocess.run(
+            ["ollama", "list"],
+            capture_output=True,
+            text=True,
+            timeout=10,
+        )
+        if model in result.stdout:
+            return True
+    except Exception:
+        pass
+    
+    # Model not found - try to pull it
+    try:
+        print(f"📥 Downloading {model} model (first time only)...")
+        result = subprocess.run(
+            ["ollama", "pull", model],
+            capture_output=True,
+            text=True,
+            timeout=300,  # 5 minute timeout for download
+        )
+        return result.returncode == 0
+    except Exception:
         return False
 
 
@@ -31,9 +124,9 @@ def identify_speakers(
     Returns:
         List of speaker names for each segment, or None if failed
     """
-    if not is_ollama_available():
+    if not ensure_model_available(model):
         if verbose:
-            print("⚠️  Ollama not available, skipping speaker identification")
+            print("⚠️  Ollama not available or model not found, skipping speaker identification")
         return None
 
     segments = transcript.get("segments", [])
@@ -74,7 +167,7 @@ Transcript:
 
     try:
         if verbose:
-            print("🤖 Identifying speakers with Ollama (this may take a moment)...")
+            print("🤖 Identifying speakers with Ollama...")
 
         result = subprocess.run(
             ["ollama", "run", model],

@@ -1,32 +1,82 @@
-"""Core transcription module using MLX-Whisper and OpenAI."""
+"""Core transcription module using faster-whisper (cross-platform)."""
+
+from __future__ import annotations
 
 import os
+import platform
+import subprocess
+import threading
 from pathlib import Path
 
-import mlx_whisper
+
+def _get_device_and_compute() -> tuple[str, str]:
+    """Detect best device and compute type for this machine."""
+    system = platform.system()
+    machine = platform.machine()
+
+    # Apple Silicon
+    if system == "Darwin" and machine == "arm64":
+        # faster-whisper uses CPU on macOS but is still fast
+        return "cpu", "int8"
+
+    # Try CUDA on Windows/Linux
+    if system in ("Windows", "Linux"):
+        try:
+            import torch
+            if torch.cuda.is_available():
+                return "cuda", "float16"
+        except ImportError:
+            pass
+
+    # Default to CPU
+    return "cpu", "int8"
 
 
 class Transcriber:
-    """Wrapper for MLX-Whisper transcription (local, for live recording chunks)."""
+    """Cross-platform Whisper transcription using faster-whisper."""
 
-    # Available models (MLX-optimized)
-    MODELS = {
-        "tiny": "mlx-community/whisper-tiny-mlx",
-        "base": "mlx-community/whisper-base-mlx",
-        "small": "mlx-community/whisper-small-mlx",
-        "medium": "mlx-community/whisper-medium-mlx",
-        "large-v3": "mlx-community/whisper-large-v3-mlx",
-    }
+    MODELS = ["tiny", "base", "small", "medium", "large-v3", "turbo"]
 
-    def __init__(self, model_size: str = "large-v3"):
+    def __init__(self, model_size: str = "small"):
         """Initialize transcriber with specified model size."""
         if model_size not in self.MODELS:
             raise ValueError(
-                f"Unknown model: {model_size}. Choose from: {list(self.MODELS.keys())}"
+                f"Unknown model: {model_size}. Choose from: {self.MODELS}"
             )
 
         self.model_size = model_size
-        self.model_path = self.MODELS[model_size]
+        self._model = None
+        self._lock = threading.Lock()
+
+    def _ensure_model(self):
+        """Lazy-load the model."""
+        if self._model is not None:
+            return
+
+        with self._lock:
+            if self._model is not None:
+                return
+
+            from faster_whisper import WhisperModel
+
+            device, compute_type = _get_device_and_compute()
+
+            try:
+                self._model = WhisperModel(
+                    self.model_size,
+                    device=device,
+                    compute_type=compute_type,
+                )
+            except Exception as e:
+                # Fallback to CPU if GPU fails
+                if device != "cpu":
+                    self._model = WhisperModel(
+                        self.model_size,
+                        device="cpu",
+                        compute_type="int8",
+                    )
+                else:
+                    raise RuntimeError(f"Failed to load Whisper model: {e}") from e
 
     def transcribe(
         self,
@@ -43,33 +93,39 @@ class Transcriber:
         Returns:
             Dictionary with 'text' and 'segments' keys
         """
-        audio_path = str(audio_path)
+        self._ensure_model()
 
-        result = mlx_whisper.transcribe(
-            audio_path,
-            path_or_hf_repo=self.model_path,
+        segments_iter, info = self._model.transcribe(
+            str(audio_path),
             language=language,
-            word_timestamps=True,
-            verbose=False,
+            beam_size=5,
+            vad_filter=True,
         )
 
-        return result
+        # Collect segments
+        segments = []
+        all_text = []
+
+        for segment in segments_iter:
+            segments.append({
+                "start": segment.start,
+                "end": segment.end,
+                "text": segment.text.strip(),
+            })
+            all_text.append(segment.text.strip())
+
+        return {
+            "text": " ".join(all_text),
+            "segments": segments,
+            "language": info.language,
+        }
 
     def transcribe_chunks(
         self,
         audio_paths: list[str | Path],
         language: str | None = None,
     ) -> dict:
-        """
-        Transcribe multiple audio chunks and merge results.
-
-        Args:
-            audio_paths: List of paths to audio chunks
-            language: Optional language code
-
-        Returns:
-            Merged dictionary with 'text' and 'segments' keys
-        """
+        """Transcribe multiple audio chunks and merge results."""
         all_text = []
         all_segments = []
         time_offset = 0.0
@@ -117,16 +173,7 @@ class OpenAITranscriber:
         audio_path: str | Path,
         language: str | None = None,
     ) -> dict:
-        """
-        Transcribe an audio file using OpenAI Whisper API.
-
-        Args:
-            audio_path: Path to audio file
-            language: Optional language code
-
-        Returns:
-            Dictionary with 'text' and 'segments' keys
-        """
+        """Transcribe an audio file using OpenAI Whisper API."""
         audio_path = Path(audio_path)
 
         with open(audio_path, "rb") as f:
@@ -141,17 +188,44 @@ class OpenAITranscriber:
         # Convert OpenAI response to our format
         segments = []
         for seg in getattr(response, "segments", []) or []:
-            segments.append(
-                {
-                    "start": seg.get("start", 0),
-                    "end": seg.get("end", 0),
-                    "text": seg.get("text", ""),
-                }
-            )
+            segments.append({
+                "start": seg.get("start", 0),
+                "end": seg.get("end", 0),
+                "text": seg.get("text", ""),
+            })
 
         return {
             "text": response.text,
             "segments": segments,
+        }
+
+    def transcribe_chunks(
+        self,
+        audio_paths: list[str | Path],
+        language: str | None = None,
+    ) -> dict:
+        """Transcribe multiple audio chunks and merge results."""
+        all_text = []
+        all_segments = []
+        time_offset = 0.0
+
+        for chunk_path in audio_paths:
+            result = self.transcribe(chunk_path, language=language)
+            all_text.append(result.get("text", ""))
+
+            for segment in result.get("segments", []):
+                adjusted_segment = segment.copy()
+                adjusted_segment["start"] += time_offset
+                adjusted_segment["end"] += time_offset
+                all_segments.append(adjusted_segment)
+
+            if result.get("segments"):
+                last_end = max(seg["end"] for seg in result["segments"])
+                time_offset += last_end
+
+        return {
+            "text": " ".join(all_text),
+            "segments": all_segments,
         }
 
 
@@ -173,7 +247,7 @@ def get_openai_api_key() -> str | None:
             pass
 
     # Check config file
-    from .config import load_settings
+    from earshot.config import load_settings
 
     settings = load_settings()
     return settings.get("openai_api_key")
