@@ -1,7 +1,7 @@
 """Configuration and settings management."""
 
-import os
 import json
+import os
 from pathlib import Path
 
 # Default settings
@@ -22,25 +22,25 @@ CONFIG_FILE = CONFIG_DIR / "settings.json"
 def load_settings() -> dict:
     """Load settings from config file, using defaults for missing values."""
     settings = DEFAULTS.copy()
-    
+
     if CONFIG_FILE.exists():
         try:
             with open(CONFIG_FILE) as f:
                 saved = json.load(f)
                 settings.update(saved)
-        except (json.JSONDecodeError, IOError):
+        except (OSError, json.JSONDecodeError):
             pass
-    
+
     # Ensure output directory exists
     os.makedirs(settings["output_dir"], exist_ok=True)
-    
+
     return settings
 
 
 def save_settings(settings: dict) -> None:
     """Save settings to config file."""
     CONFIG_DIR.mkdir(parents=True, exist_ok=True)
-    
+
     with open(CONFIG_FILE, "w") as f:
         json.dump(settings, f, indent=2)
 

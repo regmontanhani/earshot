@@ -2,7 +2,6 @@
 
 import json
 import subprocess
-from typing import Optional
 
 
 def is_ollama_available() -> bool:
@@ -18,42 +17,57 @@ def is_ollama_available() -> bool:
         return False
 
 
-def identify_speakers(transcript: dict, model: str = "llama3.2", verbose: bool = True) -> Optional[dict]:
+def identify_speakers(
+    transcript: dict, model: str = "llama3.2", verbose: bool = True
+) -> list | None:
     """
-    Use Ollama to identify speakers in a transcript.
-    
+    Use Ollama to identify speakers and assign them to segments.
+
     Args:
         transcript: Transcript dictionary with 'segments'
         model: Ollama model to use
         verbose: Print progress messages
-    
+
     Returns:
-        Dictionary mapping speaker IDs to names, or None if failed
+        List of speaker names for each segment, or None if failed
     """
     if not is_ollama_available():
         if verbose:
             print("⚠️  Ollama not available, skipping speaker identification")
         return None
-    
-    # Build transcript text for analysis (first 50 segments for context)
-    segments = transcript.get("segments", [])[:50]
+
+    segments = transcript.get("segments", [])
+    if not segments:
+        if verbose:
+            print("⚠️  No segments for speaker identification")
+        return None
+
+    # Build numbered transcript for analysis (limit to first 60 segments)
+    analysis_segments = segments[:60]
     transcript_text = "\n".join(
-        f"SPEAKER_{i % 3:02d}: {seg.get('text', '').strip()}"
-        for i, seg in enumerate(segments)
+        f"[{i}] {seg.get('text', '').strip()}"
+        for i, seg in enumerate(analysis_segments)
         if seg.get("text", "").strip()
     )
-    
+
     if not transcript_text:
         if verbose:
             print("⚠️  No transcript text for speaker identification")
         return None
-    
-    prompt = f"""Below is a transcript with speaker labels like SPEAKER_00, SPEAKER_01, etc. Based on the conversation context, names mentioned, and how people refer to each other, identify who each speaker is.
 
-Reply ONLY with a JSON object mapping speaker IDs to names, like:
-{{"SPEAKER_00": "John Smith", "SPEAKER_01": "Jane Doe"}}
+    prompt = f"""Analyze this transcript and identify who is speaking in each numbered segment.
 
-If you cannot identify a speaker, use a descriptive label like "Host" or "Guest 1".
+Look for:
+- Names mentioned ("Hi, I'm John", "Thanks Sarah")
+- Self-references and introductions
+- Context clues about roles (host, guest, interviewer)
+- Speaking patterns and topic changes
+
+Reply ONLY with a JSON array where each element is the speaker name for that segment number.
+Example: ["Host", "Guest 1", "Host", "Guest 2", "Host"]
+
+Use real names when mentioned, otherwise use descriptive labels like "Host", "Guest 1", "Interviewer", etc.
+The array must have exactly {len(analysis_segments)} elements, one for each segment.
 
 Transcript:
 {transcript_text}"""
@@ -61,7 +75,7 @@ Transcript:
     try:
         if verbose:
             print("🤖 Identifying speakers with Ollama (this may take a moment)...")
-        
+
         result = subprocess.run(
             ["ollama", "run", model],
             input=prompt,
@@ -69,32 +83,38 @@ Transcript:
             text=True,
             timeout=120,
         )
-        
+
         if result.returncode != 0:
             if verbose:
                 print("⚠️  Ollama returned an error, skipping speaker identification")
             return None
-        
+
         # Extract JSON from response
         response = result.stdout.strip()
-        
-        # Find JSON object in response
-        start = response.find("{")
-        end = response.rfind("}") + 1
-        
+
+        # Find JSON array in response
+        start = response.find("[")
+        end = response.rfind("]") + 1
+
         if start == -1 or end == 0:
             if verbose:
                 print("⚠️  Could not parse speaker identification response")
             return None
-        
+
         json_str = response[start:end]
-        speaker_map = json.loads(json_str)
-        
+        speaker_list = json.loads(json_str)
+
+        if not isinstance(speaker_list, list):
+            if verbose:
+                print("⚠️  Invalid speaker identification response format")
+            return None
+
         if verbose:
-            print(f"✅ Identified {len(speaker_map)} speakers")
-        
-        return speaker_map
-    
+            unique_speakers = set(speaker_list)
+            print(f"✅ Identified {len(unique_speakers)} speakers")
+
+        return speaker_list
+
     except subprocess.TimeoutExpired:
         if verbose:
             print("⚠️  Speaker identification timed out")
@@ -105,63 +125,66 @@ Transcript:
         return None
 
 
-def apply_speaker_names(transcript: dict, speaker_map: dict) -> dict:
+def apply_speaker_names(transcript: dict, speaker_list: list) -> dict:
     """
     Apply speaker names to transcript segments.
-    
+
     Args:
         transcript: Transcript dictionary with 'segments'
-        speaker_map: Dictionary mapping speaker IDs to names
-    
+        speaker_list: List of speaker names, one per segment
+
     Returns:
         Updated transcript with speaker names applied
     """
-    if not speaker_map:
+    if not speaker_list:
         return transcript
-    
+
+    segments = transcript.get("segments", [])
     updated = transcript.copy()
     updated["segments"] = []
-    
-    for seg in transcript.get("segments", []):
+
+    for i, seg in enumerate(segments):
         new_seg = seg.copy()
-        old_speaker = seg.get("speaker", "")
-        
-        if old_speaker in speaker_map:
-            new_seg["speaker"] = speaker_map[old_speaker]
-        
-        # Also update text if it contains speaker labels
-        text = new_seg.get("text", "")
-        for old, new in speaker_map.items():
-            text = text.replace(f"[{old}]", f"[{new}]")
-            text = text.replace(old, new)
-        new_seg["text"] = text
-        
+
+        # Assign speaker from list (use last known if list is shorter)
+        if i < len(speaker_list):
+            new_seg["speaker"] = speaker_list[i]
+        elif speaker_list:
+            new_seg["speaker"] = speaker_list[-1]
+
         updated["segments"].append(new_seg)
-    
-    # Update full text as well
-    full_text = updated.get("text", "")
-    for old, new in speaker_map.items():
-        full_text = full_text.replace(f"[{old}]", f"[{new}]")
-        full_text = full_text.replace(old, new)
-    updated["text"] = full_text
-    
+
+    # Rebuild full text with speaker labels
+    text_parts = []
+    current_speaker = None
+    for seg in updated["segments"]:
+        speaker = seg.get("speaker", "")
+        text = seg.get("text", "").strip()
+        if speaker and speaker != current_speaker:
+            text_parts.append(f"\n[{speaker}]: {text}")
+            current_speaker = speaker
+        else:
+            text_parts.append(text)
+
+    updated["text"] = " ".join(text_parts).strip()
+
     return updated
 
 
 def diarize_transcript(transcript: dict, model: str = "llama3.2") -> dict:
     """
     Attempt to identify and apply speaker names to transcript.
-    
+
     Args:
         transcript: Transcript dictionary
         model: Ollama model to use
-    
+
     Returns:
         Transcript with speaker names applied (or original if diarization failed)
     """
     speaker_map = identify_speakers(transcript, model)
-    
+
     if speaker_map:
         return apply_speaker_names(transcript, speaker_map)
-    
+
     return transcript

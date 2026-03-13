@@ -2,7 +2,6 @@
 
 import json
 from pathlib import Path
-from typing import Optional
 
 
 def format_timestamp_srt(seconds: float) -> str:
@@ -36,18 +35,23 @@ def write_txt(transcript: dict, output_path: Path) -> None:
 def write_srt(transcript: dict, output_path: Path) -> None:
     """Write transcript as SRT subtitles."""
     segments = transcript.get("segments", [])
-    
+
     with open(output_path, "w", encoding="utf-8") as f:
         index = 1
         for seg in segments:
             start = seg.get("start", 0)
             end = seg.get("end", 0)
             text = seg.get("text", "").strip()
-            
+            speaker = seg.get("speaker", "")
+
             # Skip empty or zero-duration segments
             if not text or end <= start:
                 continue
-            
+
+            # Prepend speaker label if available
+            if speaker:
+                text = f"[{speaker}]: {text}"
+
             f.write(f"{index}\n")
             f.write(f"{format_timestamp_srt(start)} --> {format_timestamp_srt(end)}\n")
             f.write(f"{text}\n\n")
@@ -57,19 +61,24 @@ def write_srt(transcript: dict, output_path: Path) -> None:
 def write_vtt(transcript: dict, output_path: Path) -> None:
     """Write transcript as WebVTT subtitles."""
     segments = transcript.get("segments", [])
-    
+
     with open(output_path, "w", encoding="utf-8") as f:
         f.write("WEBVTT\n\n")
-        
+
         for seg in segments:
             start = seg.get("start", 0)
             end = seg.get("end", 0)
             text = seg.get("text", "").strip()
-            
+            speaker = seg.get("speaker", "")
+
             # Skip empty or zero-duration segments
             if not text or end <= start:
                 continue
-            
+
+            # Prepend speaker label if available
+            if speaker:
+                text = f"[{speaker}]: {text}"
+
             f.write(f"{format_timestamp_vtt(start)} --> {format_timestamp_vtt(end)}\n")
             f.write(f"{text}\n\n")
 
@@ -77,48 +86,49 @@ def write_vtt(transcript: dict, output_path: Path) -> None:
 def write_tsv(transcript: dict, output_path: Path) -> None:
     """Write transcript as TSV (tab-separated values)."""
     segments = transcript.get("segments", [])
-    
+
     with open(output_path, "w", encoding="utf-8") as f:
-        f.write("start\tend\ttext\n")
-        
+        f.write("start\tend\tspeaker\ttext\n")
+
         for seg in segments:
             start = seg.get("start", 0)
             end = seg.get("end", 0)
             text = seg.get("text", "").strip().replace("\t", " ")
-            
+            speaker = seg.get("speaker", "").replace("\t", " ")
+
             # Skip empty or zero-duration segments
             if not text or end <= start:
                 continue
-            
+
             start_ms = int(start * 1000)
             end_ms = int(end * 1000)
-            f.write(f"{start_ms}\t{end_ms}\t{text}\n")
+            f.write(f"{start_ms}\t{end_ms}\t{speaker}\t{text}\n")
 
 
 def write_all_formats(
     transcript: dict,
     output_dir: Path,
     base_name: str,
-    formats: Optional[list[str]] = None,
+    formats: list[str] | None = None,
 ) -> list[Path]:
     """
     Write transcript in all specified formats.
-    
+
     Args:
         transcript: Transcript dictionary with 'text' and 'segments'
         output_dir: Directory to write files to
         base_name: Base filename (without extension)
         formats: List of formats to write. Defaults to all formats.
-    
+
     Returns:
         List of paths to written files
     """
     if formats is None:
         formats = ["json", "txt", "srt", "vtt", "tsv"]
-    
+
     output_dir = Path(output_dir)
     output_dir.mkdir(parents=True, exist_ok=True)
-    
+
     writers = {
         "json": write_json,
         "txt": write_txt,
@@ -126,13 +136,13 @@ def write_all_formats(
         "vtt": write_vtt,
         "tsv": write_tsv,
     }
-    
+
     written_files = []
-    
+
     for fmt in formats:
         if fmt in writers:
             output_path = output_dir / f"{base_name}.{fmt}"
             writers[fmt](transcript, output_path)
             written_files.append(output_path)
-    
+
     return written_files
