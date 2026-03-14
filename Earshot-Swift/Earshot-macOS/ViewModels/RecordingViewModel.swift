@@ -17,7 +17,7 @@ final class RecordingViewModel: ObservableObject {
     @Published var isTranscribing = false
 
     let captureManager = ScreenCaptureManager()
-    private let engine = TranscriptionEngine(model: .base)
+    private let engine = TranscriptionEngine(model: .small)
     private var timer: Timer?
     private var recordingStart: Date?
     private var lastTranscript: Transcript?
