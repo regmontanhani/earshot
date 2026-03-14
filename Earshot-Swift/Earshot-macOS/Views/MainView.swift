@@ -94,11 +94,26 @@ struct MainView: View {
         }
         .padding(.top, 20)
         .frame(minWidth: 340, minHeight: 500)
+        .background(.regularMaterial)
         .sheet(isPresented: $showSettings) {
             SettingsView()
         }
+        .alert("Screen Recording Required", isPresented: $viewModel.showScreenRecordingAlert) {
+            Button("Grant Permission") {
+                // Lower our floating panel so System Settings is visible
+                NSApp.windows.forEach { window in
+                    if window is FloatingPanel {
+                        window.level = .normal
+                    }
+                }
+                CGRequestScreenCaptureAccess()
+            }
+            Button("Cancel", role: .cancel) {}
+        } message: {
+            Text("Earshot needs Screen Recording permission to capture audio.\n\n1. Toggle Earshot ON in the list\n2. Click 'Quit & Reopen'\n3. Reopen the app and hit Record")
+        }
         .task {
-            try? await viewModel.captureManager.refreshApps()
+            await viewModel.captureManager.startMicMonitoringOnly()
         }
     }
 }

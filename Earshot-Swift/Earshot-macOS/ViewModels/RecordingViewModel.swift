@@ -11,6 +11,7 @@ final class RecordingViewModel: ObservableObject {
     @Published var status: String = "Ready"
     @Published var transcriptText: String = ""
     @Published var currentSessionIndex = 0
+    @Published var showScreenRecordingAlert = false
 
     let captureManager = ScreenCaptureManager()
     private var timer: Timer?
@@ -24,11 +25,15 @@ final class RecordingViewModel: ObservableObject {
 
     init() {
         captureManager.onAudioLevel = { [weak self] level in
+            // Amplify raw RMS (typically 0.0-0.05) to visible range (0.0-1.0)
+            let amplified = min(1.0, level * 15)
             Task { @MainActor in
                 guard let self else { return }
-                self.audioLevels.append(level)
-                if self.audioLevels.count > 40 {
-                    self.audioLevels.removeFirst(self.audioLevels.count - 40)
+                withAnimation(.linear(duration: 0.05)) {
+                    self.audioLevels.append(amplified)
+                    if self.audioLevels.count > 40 {
+                        self.audioLevels.removeFirst(self.audioLevels.count - 40)
+                    }
                 }
             }
         }
@@ -43,6 +48,13 @@ final class RecordingViewModel: ObservableObject {
     }
 
     private func startRecording() async {
+        let hasAccess = await captureManager.ensureScreenRecordingAccess()
+        guard hasAccess else {
+            status = "Screen Recording permission needed"
+            showScreenRecordingAlert = true
+            return
+        }
+
         do {
             try await captureManager.startCapture()
             isRecording = true
@@ -52,6 +64,7 @@ final class RecordingViewModel: ObservableObject {
             startTimer()
         } catch {
             status = "Error: \(error.localizedDescription)"
+            print("Start capture error: \(error)")
         }
     }
 
@@ -59,8 +72,9 @@ final class RecordingViewModel: ObservableObject {
         do {
             try await captureManager.stopCapture()
             isRecording = false
-            status = "Processing..."
             stopTimer()
+            let duration = formattedTime
+            status = "Stopped (\(duration)) - transcription coming soon"
         } catch {
             status = "Error: \(error.localizedDescription)"
         }

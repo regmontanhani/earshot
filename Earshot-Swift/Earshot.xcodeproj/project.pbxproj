@@ -36,17 +36,17 @@
 		0C84E6209F5ED0FAC8CF8EAF /* ScreenCaptureManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ScreenCaptureManager.swift; sourceTree = "<group>"; };
 		1C7E4F9ED24497226F9ACE15 /* MainView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MainView.swift; sourceTree = "<group>"; };
 		205A6D286ED27B75595BA7B7 /* SettingsTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SettingsTests.swift; sourceTree = "<group>"; };
-		31739FA6F0FBC009A68AB154 /* EarshotKit */ = {isa = PBXFileReference; lastKnownFileType = folder; name = EarshotKit; path = EarshotKit; sourceTree = SOURCE_ROOT; };
+		31739FA6F0FBC009A68AB154 /* EarshotKit */ = {isa = PBXFileReference; lastKnownFileType = folder; path = EarshotKit; sourceTree = SOURCE_ROOT; };
 		53520FCCB1F9EEBB9BCBBB81 /* AppAudioPicker.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppAudioPicker.swift; sourceTree = "<group>"; };
 		53817E7733C654F17D618C57 /* FloatingPanel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FloatingPanel.swift; sourceTree = "<group>"; };
 		5A6B919E8A73FE257993B2FC /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist; path = Info.plist; sourceTree = "<group>"; };
 		5B397E1F067B11420AF42047 /* Earshot.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = Earshot.entitlements; sourceTree = "<group>"; };
-		73C770F7F8ADE3C4C35AC888 /* EarshotBroadcastExt.appex */ = {isa = PBXFileReference; includeInIndex = 0; lastKnownFileType = "wrapper.app-extension"; path = EarshotBroadcastExt.appex; sourceTree = BUILT_PRODUCTS_DIR; };
+		73C770F7F8ADE3C4C35AC888 /* EarshotBroadcastExt.appex */ = {isa = PBXFileReference; includeInIndex = 0; lastKnownFileType = "wrapper.app-extension"; name = EarshotBroadcastExt.appex; path = EarshotBroadcast.appex; sourceTree = BUILT_PRODUCTS_DIR; };
 		7960AF6DF99E82F7DECA7A30 /* EarshotApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = EarshotApp.swift; sourceTree = "<group>"; };
 		7E2796D36963D9E6DF659E8D /* EarshotKitTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = EarshotKitTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		7FEA65E5F507FF96E4106263 /* ExportManagerTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ExportManagerTests.swift; sourceTree = "<group>"; };
 		84ECCB884C21B8D31D1DA69F /* TranscriptTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TranscriptTests.swift; sourceTree = "<group>"; };
-		8FDB33FCD40470917C508065 /* Earshot-iOS.app */ = {isa = PBXFileReference; includeInIndex = 0; lastKnownFileType = wrapper.application; path = "Earshot-iOS.app"; sourceTree = BUILT_PRODUCTS_DIR; };
+		8FDB33FCD40470917C508065 /* Earshot-iOS.app */ = {isa = PBXFileReference; includeInIndex = 0; lastKnownFileType = wrapper.application; name = "Earshot-iOS.app"; path = Earshot.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		8FE1E7CFC1D888E1920A408B /* SettingsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SettingsView.swift; sourceTree = "<group>"; };
 		922B558A94D1461AF3999712 /* TranscriptionEngineTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TranscriptionEngineTests.swift; sourceTree = "<group>"; };
 		B04BAF56D8C85DDBB677695B /* RecordingViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RecordingViewModel.swift; sourceTree = "<group>"; };
@@ -354,6 +354,9 @@
 				BuildIndependentTargetsInParallel = YES;
 				LastUpgradeCheck = 1500;
 				TargetAttributes = {
+					E31CD32546C44FDD4709019C = {
+						ProvisioningStyle = Automatic;
+					};
 				};
 			};
 			buildConfigurationList = 5E10F8C7203D68DB8A12B50A /* Build configuration list for PBXProject "Earshot" */;
@@ -499,8 +502,10 @@
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				CODE_SIGN_ENTITLEMENTS = "Earshot-macOS/Earshot.entitlements";
+				CODE_SIGN_STYLE = Automatic;
 				COMBINE_HIDPI_IMAGES = YES;
-				ENABLE_HARDENED_RUNTIME = YES;
+				DEVELOPMENT_TEAM = QND8AB9M9N;
+				ENABLE_HARDENED_RUNTIME = NO;
 				INFOPLIST_FILE = "Earshot-macOS/Info.plist";
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
@@ -658,8 +663,10 @@
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				CODE_SIGN_ENTITLEMENTS = "Earshot-macOS/Earshot.entitlements";
+				CODE_SIGN_STYLE = Automatic;
 				COMBINE_HIDPI_IMAGES = YES;
-				ENABLE_HARDENED_RUNTIME = YES;
+				DEVELOPMENT_TEAM = QND8AB9M9N;
+				ENABLE_HARDENED_RUNTIME = NO;
 				INFOPLIST_FILE = "Earshot-macOS/Info.plist";
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",

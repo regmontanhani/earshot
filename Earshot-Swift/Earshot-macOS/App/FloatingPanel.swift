@@ -15,7 +15,7 @@ class FloatingPanel: NSPanel {
         collectionBehavior = [.canJoinAllSpaces, .fullScreenAuxiliary]
         becomesKeyOnlyIfNeeded = false
         isOpaque = false
-        backgroundColor = .clear
+        backgroundColor = NSColor.windowBackgroundColor
         isMovableByWindowBackground = true
         titlebarAppearsTransparent = true
         titleVisibility = .hidden

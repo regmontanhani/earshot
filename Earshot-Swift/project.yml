@@ -35,12 +35,13 @@ targets:
         PRODUCT_NAME: Earshot
         INFOPLIST_FILE: Earshot-macOS/Info.plist
         CODE_SIGN_ENTITLEMENTS: Earshot-macOS/Earshot.entitlements
+        CODE_SIGN_STYLE: Automatic
         ASSETCATALOG_COMPILER_APPICON_NAME: AppIcon
         COMBINE_HIDPI_IMAGES: true
         LD_RUNPATH_SEARCH_PATHS:
           - $(inherited)
           - "@executable_path/../Frameworks"
-        ENABLE_HARDENED_RUNTIME: true
+        ENABLE_HARDENED_RUNTIME: false
     entitlements:
       path: Earshot-macOS/Earshot.entitlements
       properties:
