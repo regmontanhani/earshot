@@ -46,17 +46,36 @@ struct MainView: View {
             Divider()
 
             // Transcript area
-            if viewModel.transcriptText.isEmpty {
+            if viewModel.isTranscribing {
+                VStack(spacing: 12) {
+                    ProgressView()
+                        .scaleEffect(1.5)
+                    Text(viewModel.status)
+                        .font(.caption)
+                        .foregroundStyle(.secondary)
+                }
+                .frame(maxHeight: .infinity)
+            } else if viewModel.segments.isEmpty {
                 Text("Transcript will appear here")
                     .foregroundStyle(.tertiary)
                     .frame(maxHeight: .infinity)
             } else {
                 ScrollView {
-                    Text(viewModel.transcriptText)
-                        .font(.body)
-                        .frame(maxWidth: .infinity, alignment: .leading)
-                        .padding()
-                        .textSelection(.enabled)
+                    LazyVStack(alignment: .leading, spacing: 12) {
+                        ForEach(viewModel.segments) { segment in
+                            VStack(alignment: .leading, spacing: 4) {
+                                Text(formatTimestamp(segment.start) + " - " + formatTimestamp(segment.end))
+                                    .font(.caption)
+                                    .foregroundStyle(.secondary)
+                                    .fontDesign(.monospaced)
+                                Text(segment.text)
+                                    .font(.body)
+                                    .textSelection(.enabled)
+                            }
+                            .padding(.horizontal)
+                        }
+                    }
+                    .padding(.vertical, 8)
                 }
             }
 
@@ -115,6 +134,13 @@ struct MainView: View {
         .task {
             await viewModel.captureManager.startMicMonitoringOnly()
         }
+    }
+
+    private func formatTimestamp(_ seconds: TimeInterval) -> String {
+        let mins = Int(seconds) / 60
+        let secs = Int(seconds) % 60
+        let ms = Int((seconds.truncatingRemainder(dividingBy: 1)) * 10)
+        return String(format: "%02d:%02d.%d", mins, secs, ms)
     }
 }
 #endif

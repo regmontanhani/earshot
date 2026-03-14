@@ -20,6 +20,10 @@ final class ScreenCaptureManager: NSObject, ObservableObject {
     private var stream: SCStream?
     private var audioEngine: AVAudioEngine?
 
+    // Accumulated audio samples for transcription (16kHz mono Float)
+    nonisolated(unsafe) private var audioSamples: [Float] = []
+    nonisolated(unsafe) private var samplesLock = NSLock()
+
     // Use nonisolated(unsafe) so the SCStreamOutput callback can access these
     nonisolated(unsafe) var onAudioLevel: ((Float) -> Void)?
     nonisolated(unsafe) var onAudioBuffer: ((AVAudioPCMBuffer) -> Void)?
@@ -82,6 +86,11 @@ final class ScreenCaptureManager: NSObject, ObservableObject {
     }
 
     func startCapture() async throws {
+        // Clear accumulated audio
+        samplesLock.lock()
+        audioSamples.removeAll()
+        samplesLock.unlock()
+
         let content = try await SCShareableContent.excludingDesktopWindows(
             false, onScreenWindowsOnly: false
         )
@@ -115,28 +124,34 @@ final class ScreenCaptureManager: NSObject, ObservableObject {
         config.sampleRate = 16000
         config.channelCount = 1
         config.excludesCurrentProcessAudio = true
-        // We only want audio, but SCStream requires valid video dimensions
+        // Minimize video capture to prevent DRM content blanking
         config.width = 2
         config.height = 2
-        config.minimumFrameInterval = CMTime(value: 1, timescale: 1) // 1 fps minimum
+        config.minimumFrameInterval = CMTime(value: 1, timescale: 1)
         config.showsCursor = false
+        config.pixelFormat = kCVPixelFormatType_32BGRA
 
         let stream = SCStream(filter: filter, configuration: config, delegate: self)
         try stream.addStreamOutput(self, type: .audio, sampleHandlerQueue: .global(qos: .userInteractive))
-        try stream.addStreamOutput(self, type: .screen, sampleHandlerQueue: .global(qos: .background))
         try await stream.startCapture()
         self.stream = stream
         isCapturing = true
 
-        // Upgrade mic tap to also send buffers for transcription
+        // Upgrade mic tap to also accumulate samples for transcription
         if isMicMonitoring {
             audioEngine?.inputNode.removeTap(onBus: 0)
             if let engine = audioEngine {
                 let format = engine.inputNode.outputFormat(forBus: 0)
                 engine.inputNode.installTap(onBus: 0, bufferSize: 4096, format: format) { [weak self] buffer, _ in
-                    self?.onAudioBuffer?(buffer)
+                    guard let self else { return }
+                    // Convert mic audio to 16kHz mono and accumulate
+                    if let samples = self.convertToMono16k(buffer: buffer) {
+                        self.samplesLock.lock()
+                        self.audioSamples.append(contentsOf: samples)
+                        self.samplesLock.unlock()
+                    }
                     let level = buffer.rmsLevel()
-                    self?.onAudioLevel?(level)
+                    self.onAudioLevel?(level)
                 }
             }
         } else {
@@ -160,6 +175,15 @@ final class ScreenCaptureManager: NSObject, ObservableObject {
         }
     }
 
+    /// Retrieve accumulated audio samples and clear the buffer
+    func drainAudioSamples() -> [Float] {
+        samplesLock.lock()
+        let samples = audioSamples
+        audioSamples.removeAll()
+        samplesLock.unlock()
+        return samples
+    }
+
     private func startMicrophoneCapture() async throws {
         let granted = await AVCaptureDevice.requestAccess(for: .audio)
         guard granted else {
@@ -180,6 +204,30 @@ final class ScreenCaptureManager: NSObject, ObservableObject {
         try engine.start()
         self.audioEngine = engine
     }
+
+    /// Convert an audio buffer to 16kHz mono Float samples
+    nonisolated func convertToMono16k(buffer: AVAudioPCMBuffer) -> [Float]? {
+        guard let channelData = buffer.floatChannelData?[0] else { return nil }
+        let frameCount = Int(buffer.frameLength)
+        let srcRate = buffer.format.sampleRate
+
+        if abs(srcRate - 16000) < 1 {
+            // Already 16kHz
+            return Array(UnsafeBufferPointer(start: channelData, count: frameCount))
+        }
+
+        // Simple downsample by ratio
+        let ratio = srcRate / 16000.0
+        let outputCount = Int(Double(frameCount) / ratio)
+        var output = [Float](repeating: 0, count: outputCount)
+        for i in 0..<outputCount {
+            let srcIdx = Int(Double(i) * ratio)
+            if srcIdx < frameCount {
+                output[i] = channelData[srcIdx]
+            }
+        }
+        return output
+    }
 }
 
 extension ScreenCaptureManager: SCStreamOutput {
@@ -187,6 +235,16 @@ extension ScreenCaptureManager: SCStreamOutput {
         // Discard video frames - we only want audio
         guard type == .audio else { return }
         guard let buffer = sampleBuffer.toAudioBuffer() else { return }
+
+        // Accumulate samples for transcription
+        if let channelData = buffer.floatChannelData?[0] {
+            let frameCount = Int(buffer.frameLength)
+            let samples = Array(UnsafeBufferPointer(start: channelData, count: frameCount))
+            samplesLock.lock()
+            audioSamples.append(contentsOf: samples)
+            samplesLock.unlock()
+        }
+
         onAudioBuffer?(buffer)
         let level = buffer.rmsLevel()
         onAudioLevel?(level)

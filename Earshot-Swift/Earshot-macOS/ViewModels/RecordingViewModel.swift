@@ -2,20 +2,25 @@
 import SwiftUI
 import Combine
 import AVFoundation
+import EarshotKit
 
 @MainActor
 final class RecordingViewModel: ObservableObject {
     @Published var isRecording = false
     @Published var audioLevels: [Float] = Array(repeating: 0, count: 40)
     @Published var elapsedTime: TimeInterval = 0
-    @Published var status: String = "Ready"
+    @Published var status: String = "Loading model..."
     @Published var transcriptText: String = ""
+    @Published var segments: [Segment] = []
     @Published var currentSessionIndex = 0
     @Published var showScreenRecordingAlert = false
+    @Published var isTranscribing = false
 
     let captureManager = ScreenCaptureManager()
+    private let engine = TranscriptionEngine(model: .base)
     private var timer: Timer?
     private var recordingStart: Date?
+    private var lastTranscript: Transcript?
 
     var formattedTime: String {
         let mins = Int(elapsedTime) / 60
@@ -25,7 +30,6 @@ final class RecordingViewModel: ObservableObject {
 
     init() {
         captureManager.onAudioLevel = { [weak self] level in
-            // Amplify raw RMS (typically 0.0-0.05) to visible range (0.0-1.0)
             let amplified = min(1.0, level * 15)
             Task { @MainActor in
                 guard let self else { return }
@@ -35,6 +39,17 @@ final class RecordingViewModel: ObservableObject {
                         self.audioLevels.removeFirst(self.audioLevels.count - 40)
                     }
                 }
+            }
+        }
+
+        // Load whisper model in background
+        Task {
+            do {
+                try await engine.loadModel()
+                status = "Ready"
+            } catch {
+                status = "Model load failed: \(error.localizedDescription)"
+                print("Model load error: \(error)")
             }
         }
     }
@@ -55,6 +70,10 @@ final class RecordingViewModel: ObservableObject {
             return
         }
 
+        transcriptText = ""
+        segments = []
+        lastTranscript = nil
+
         do {
             try await captureManager.startCapture()
             isRecording = true
@@ -74,7 +93,33 @@ final class RecordingViewModel: ObservableObject {
             isRecording = false
             stopTimer()
             let duration = formattedTime
-            status = "Stopped (\(duration)) - transcription coming soon"
+
+            // Get accumulated audio and transcribe
+            let samples = captureManager.drainAudioSamples()
+            guard !samples.isEmpty else {
+                status = "No audio captured (\(duration))"
+                return
+            }
+
+            let sampleCount = samples.count
+            let audioDuration = Double(sampleCount) / 16000.0
+            status = "Transcribing \(String(format: "%.0f", audioDuration))s of audio..."
+            isTranscribing = true
+
+            do {
+                let transcript = try await engine.transcribe(audioSamples: samples)
+                lastTranscript = transcript
+                segments = transcript.segments
+                transcriptText = transcript.fullText
+                status = transcript.segments.isEmpty
+                    ? "No speech detected (\(duration))"
+                    : "Done - \(transcript.segments.count) segments"
+            } catch {
+                status = "Transcription error: \(error.localizedDescription)"
+                print("Transcription error: \(error)")
+            }
+
+            isTranscribing = false
         } catch {
             status = "Error: \(error.localizedDescription)"
         }

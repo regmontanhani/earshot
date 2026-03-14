@@ -26,16 +26,55 @@ public actor TranscriptionEngine {
         }
 
         let results = try await kit.transcribe(audioPath: audioURL.path())
+        return buildTranscript(from: results)
+    }
+
+    public func transcribe(audioSamples: [Float]) async throws -> Transcript {
+        if !isLoaded { try await loadModel() }
+        guard let kit = whisperKit else {
+            throw TranscriptionError.modelNotLoaded
+        }
+
+        let results = try await kit.transcribe(audioArray: audioSamples)
+        return buildTranscript(from: results)
+    }
+
+    private func buildTranscript(from results: [TranscriptionResult]) -> Transcript {
         let segments = results.flatMap { result in
-            (result.segments ?? []).map { seg in
-                Segment(
-                    text: seg.text.trimmingCharacters(in: .whitespaces),
+            (result.segments ?? []).compactMap { seg -> Segment? in
+                let cleaned = cleanText(seg.text)
+                guard !cleaned.isEmpty else { return nil }
+                return Segment(
+                    text: cleaned,
                     start: TimeInterval(seg.start),
                     end: TimeInterval(seg.end)
                 )
             }
         }
         return Transcript(segments: segments)
+    }
+
+    private func cleanText(_ text: String) -> String {
+        var result = text
+        // Strip WhisperKit tokens like <|en|>, <|0.00|>, <|startoftranscript|>, etc.
+        result = result.replacingOccurrences(
+            of: "<\\|[^|]*\\|>",
+            with: "",
+            options: .regularExpression
+        )
+        // Strip non-speech markers
+        let markers = ["[BLANK_AUDIO]", "[MUSIC]", "[SILENCE]", "[NOISE]", "(music)", "(silence)"]
+        for marker in markers {
+            result = result.replacingOccurrences(of: marker, with: "", options: .caseInsensitive)
+        }
+        // Strip >> speaker markers from raw output
+        result = result.replacingOccurrences(of: ">>", with: "")
+        // Clean up whitespace
+        result = result.trimmingCharacters(in: .whitespacesAndNewlines)
+        result = result.replacingOccurrences(
+            of: "\\s+", with: " ", options: .regularExpression
+        )
+        return result
     }
 }
 
